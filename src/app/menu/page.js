@@ -328,9 +328,7 @@ export default function MenuPage() {
 
       {/* Sticky WhatsApp Floating Button */}
       <a
-        href="https://wa.me/971568867131"
-        target="_blank"
-        rel="noopener noreferrer"
+        href="https://api.whatsapp.com/send?phone=971568867131"
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 bg-whatsappGreen text-white text-xs font-black tracking-wider rounded-full shadow-2xl hover:bg-whatsappGreenDark hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
       >
         <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
