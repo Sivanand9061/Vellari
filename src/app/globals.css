@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brandGreen: #006B2B;
+  --color-brandGreenDark: #004D1F;
+  --color-brandGold: #F5B041;
+  --color-brandGoldDark: #D49228;
+  --color-brandDark: #111111;
+  --color-brandLight: #FFFDF9;
+  --color-whatsappGreen: #25D366;
+  --color-whatsappGreenDark: #128C7E;
+
+  --font-sans: "Gotham", sans-serif;
+
+  --animate-pulse-glow: pulseGlow 2.5s infinite;
+  --animate-fade-in-up: fadeInUp 0.8s ease-out forwards;
+  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-float: float 3s ease-in-out infinite;
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+    }
+    50% {
+      transform: scale(1.03);
+      box-shadow: 0 0 0 12px rgba(37, 211, 102, 0);
+    }
+  }
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(25px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+}
+
+:root {
+  --background: #FFFDF9;
+  --foreground: #111111;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Gotham", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero-gradient {
+  background: linear-gradient(to bottom, rgba(17, 17, 17, 0.4) 0%, rgba(17, 17, 17, 0.7) 60%, rgba(17, 17, 17, 0.95) 100%);
+}
