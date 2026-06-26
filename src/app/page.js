@@ -185,7 +185,7 @@ export default function Home() {
       <footer className="w-full bg-brandDark text-white py-12 border-t border-brandGreen/20">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-xs text-gray-400 font-medium">
-            © 2024 Vellari Restaurant. All rights reserved. Al Karama, Dubai, UAE.
+            © 2026 Vellari Restaurant. All rights reserved. Al Karama, Dubai, UAE.
           </p>
         </div>
       </footer>
