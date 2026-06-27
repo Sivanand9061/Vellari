@@ -170,9 +170,10 @@ export default function MenuPage() {
   const categories = [
     { id: "combos-specials", name: "Combos & Specials" },
     { id: "breakfast-breads", name: "Breakfast & Breads" },
-    { id: "chicken-beef-charcole", name: "Chicken, Beef & Charcoal" },
-    { id: "curries-indian", name: "Curries & Indian" },
-    { id: "chinese-burgers", name: "Chinese & Burgers" },
+    { id: "chicken-beef-charcole", name: "Mains (Chicken, Beef & Charcoal)" },
+    { id: "lunch-traditional", name: "Biriyani & Traditional Lunch" },
+    { id: "curries-indian", name: "Curries & North Indian" },
+    { id: "fastfood-chinese", name: "Chinese & Fast Food" },
     { id: "drinks-soups", name: "Drinks & Soups" },
   ];
 
@@ -272,6 +273,24 @@ export default function MenuPage() {
       { name: "Charcoal Pepper Chicken", price: "AED 36 / 20", section: "Charcoal" },
       { name: "Charcoal Mix Chicken", price: "AED 36 / 20", section: "Charcoal" },
     ],
+    "lunch-traditional": [
+      // FISH ITEMS
+      { name: "Ayala Fry", price: "APS", section: "Fish" },
+      { name: "Fish Fry", price: "APS", section: "Fish" },
+      { name: "Fish Masala", price: "APS", section: "Fish" },
+      { name: "Fish Nadan Curry", price: "APS", section: "Fish" },
+      // EGG ITEMS
+      { name: "Double Omelette", price: "AED 4.00", section: "Eggs" },
+      { name: "Egg Bhurji", price: "AED 6.00", section: "Eggs" },
+      { name: "Single Omelette", price: "AED 2.00", section: "Eggs" },
+      // LUNCH
+      { name: "Biriyani - Veg/Egg/Chicken", price: "AED 8/8/10", section: "Lunch" },
+      { name: "Ghee Rice", price: "AED 6.00", section: "Lunch" },
+      { name: "Kerala Meals", price: "AED 8.00", section: "Lunch" },
+      { name: "Plain Rice", price: "AED 3.00", section: "Lunch" },
+      { name: "Pothi Biriyani Chicken/Beef", price: "AED 14/16", section: "Lunch" },
+      { name: "Pothi Choru", price: "AED 12.00", section: "Lunch" },
+    ],
     "curries-indian": [
       // CURRY
       { name: "Aloo Bhaji", price: "AED 3.00", section: "Curry" },
@@ -314,7 +333,7 @@ export default function MenuPage() {
       { name: "Tomato Rice", price: "AED 8.00", section: "Veg & Rice" },
       { name: "Paneer Lababdar", price: "AED 12.00", section: "Veg & Rice" },
     ],
-    "chinese-burgers": [
+    "fastfood-chinese": [
       // CHINESE
       { name: "Chicken Lollipop", price: "AED 10.00", section: "Chinese" },
       { name: "Chicken 65", price: "AED 12.00", section: "Chinese" },
@@ -345,6 +364,13 @@ export default function MenuPage() {
       { name: "Veg Burger", price: "AED 8.00", section: "Burger" },
       { name: "Double Chicken Burger", price: "AED 13.00", section: "Burger" },
       { name: "Double Beef Burger", price: "AED 16.00", section: "Burger" },
+      // SANDWICH
+      { name: "Cheese Sandwich", price: "AED 3.00", section: "Sandwiches" },
+      { name: "Chicken Sandwich", price: "AED 6.00", section: "Sandwiches" },
+      { name: "Club Sandwich", price: "AED 12.00", section: "Sandwiches" },
+      { name: "Egg Sandwich", price: "AED 5.00", section: "Sandwiches" },
+      { name: "Veg Sandwich", price: "AED 4.00", section: "Sandwiches" },
+      { name: "Zinger Sandwich", price: "AED 8.00", section: "Sandwiches" },
     ],
     "drinks-soups": [
       // FRESH JUICES
@@ -372,29 +398,6 @@ export default function MenuPage() {
       { name: "Sprite Can 330 Ml", price: "AED 4.00", section: "Soft Drinks" },
       { name: "Water Big", price: "AED 2.50", section: "Soft Drinks" },
       { name: "Water Small", price: "AED 1.50", section: "Soft Drinks" },
-      // EGG ITEMS
-      { name: "Double Omelette", price: "AED 4.00", section: "Eggs" },
-      { name: "Egg Bhurji", price: "AED 6.00", section: "Eggs" },
-      { name: "Single Omelette", price: "AED 2.00", section: "Eggs" },
-      // FISH ITEMS
-      { name: "Ayala Fry", price: "APS", section: "Fish" },
-      { name: "Fish Fry", price: "APS", section: "Fish" },
-      { name: "Fish Masala", price: "APS", section: "Fish" },
-      { name: "Fish Nadan Curry", price: "APS", section: "Fish" },
-      // LUNCH
-      { name: "Biriyani - Veg/Egg/Chicken", price: "AED 8/8/10", section: "Lunch" },
-      { name: "Ghee Rice", price: "AED 6.00", section: "Lunch" },
-      { name: "Kerala Meals", price: "AED 8.00", section: "Lunch" },
-      { name: "Plain Rice", price: "AED 3.00", section: "Lunch" },
-      { name: "Pothi Biriyani Chicken/Beef", price: "AED 14/16", section: "Lunch" },
-      { name: "Pothi Choru", price: "AED 12.00", section: "Lunch" },
-      // SANDWICH
-      { name: "Cheese Sandwich", price: "AED 3.00", section: "Sandwiches" },
-      { name: "Chicken Sandwich", price: "AED 6.00", section: "Sandwiches" },
-      { name: "Club Sandwich", price: "AED 12.00", section: "Sandwiches" },
-      { name: "Egg Sandwich", price: "AED 5.00", section: "Sandwiches" },
-      { name: "Veg Sandwich", price: "AED 4.00", section: "Sandwiches" },
-      { name: "Zinger Sandwich", price: "AED 8.00", section: "Sandwiches" },
       // SOUP
       { name: "Chicken Soup", price: "AED 10.00", section: "Soups" },
       { name: "Veg Hot & Sour Soup", price: "AED 8.00", section: "Soups" },
