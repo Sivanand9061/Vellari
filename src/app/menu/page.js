@@ -8,6 +8,7 @@ export default function MenuPage() {
   const [cart, setCart] = useState({});
   const [orderType, setOrderType] = useState("delivery");
   const [address, setAddress] = useState("");
+  const [addressDetails, setAddressDetails] = useState("");
   const [addressError, setAddressError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -24,17 +25,13 @@ export default function MenuPage() {
       (position) => {
         const { latitude, longitude } = position.coords;
         const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        setAddress((prev) => {
-          const cleanPrev = prev.replace(/📍 Location: https:\/\/www\.google\.com\/maps\?q=[-.\d]+,[-.\d]+\n?/, "");
-          return `📍 Location: ${mapsLink}\n${cleanPrev}`.trim();
-        });
-        setAddressError(false);
+        setAddress(mapsLink);
         setIsLocating(false);
       },
       (error) => {
         setIsLocating(false);
         console.error("Geolocation error:", error);
-        alert("Could not retrieve exact location. Please ensure location permissions are enabled on your browser/device, or enter your address manually.");
+        alert("Could not retrieve exact location. Please ensure location permissions are enabled on your browser/device.");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -47,10 +44,12 @@ export default function MenuPage() {
       const savedCart = localStorage.getItem("vellari_cart");
       const savedOrderType = localStorage.getItem("vellari_order_type");
       const savedAddress = localStorage.getItem("vellari_address");
+      const savedAddressDetails = localStorage.getItem("vellari_address_details");
 
       if (savedCart) setCart(JSON.parse(savedCart));
       if (savedOrderType) setOrderType(savedOrderType);
       if (savedAddress) setAddress(savedAddress);
+      if (savedAddressDetails) setAddressDetails(savedAddressDetails);
     } catch (e) {
       console.error("Failed to load cart from localStorage", e);
     }
@@ -64,10 +63,11 @@ export default function MenuPage() {
       localStorage.setItem("vellari_cart", JSON.stringify(cart));
       localStorage.setItem("vellari_order_type", orderType);
       localStorage.setItem("vellari_address", address);
+      localStorage.setItem("vellari_address_details", addressDetails);
     } catch (e) {
       console.error("Failed to save cart to localStorage", e);
     }
-  }, [cart, orderType, address, isLoaded]);
+  }, [cart, orderType, address, addressDetails, isLoaded]);
 
   const parsePrice = (priceStr) => {
     if (priceStr.includes("APS")) return 0;
@@ -136,7 +136,10 @@ export default function MenuPage() {
     message += `Order Type: ${typeLabel}\n`;
     
     if (orderType === "delivery") {
-      message += `Delivery Address: ${address}\n`;
+      message += `Address: ${addressDetails}\n`;
+      if (address) {
+        message += `Location Pin: ${address}\n`;
+      }
     }
     
     message += "\nPlease confirm my order and let me know the preparation time. Thank you!";
@@ -540,46 +543,71 @@ export default function MenuPage() {
 
             {/* Dynamic Delivery Address Input */}
             {orderType === "delivery" && (
-              <div className="flex flex-col gap-1.5 animate-fade-in">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
-                    Delivery Address (Area, Building, Flat) *
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleShareLocation}
-                    disabled={isLocating}
-                    className="text-[9px] font-black text-brandGold bg-white/5 border border-brandGold/35 hover:border-brandGold hover:bg-white/10 rounded px-2.5 py-1 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <span className="material-symbols-outlined text-[10px]">
-                      my_location
+              <div className="flex flex-col gap-3 animate-fade-in">
+                
+                {/* Geolocation Section */}
+                <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10 gap-3">
+                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                    <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">GPS LOCATION</span>
+                    <span className="text-[10px] text-white/70 truncate font-mono">
+                      {address ? address : "No location pinned (Optional)"}
                     </span>
-                    {isLocating ? "LOCATING..." : "PIN LOCATION"}
-                  </button>
+                  </div>
+                  {address ? (
+                    <button
+                      type="button"
+                      onClick={() => setAddress("")}
+                      className="text-[9px] font-black text-red-400 hover:text-red-300 bg-white/5 border border-red-500/20 hover:border-red-500/40 rounded px-2.5 py-1 cursor-pointer transition-all flex items-center gap-0.5"
+                    >
+                      <span className="material-symbols-outlined text-[10px]">close</span>
+                      CLEAR
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleShareLocation}
+                      disabled={isLocating}
+                      className="text-[9px] font-black text-brandGold bg-white/5 border border-brandGold/35 hover:border-brandGold hover:bg-white/10 rounded px-2.5 py-1 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-[10px]">
+                        my_location
+                      </span>
+                      {isLocating ? "LOCATING..." : "PIN LOCATION"}
+                    </button>
+                  )}
                 </div>
-                <textarea
-                  value={address}
-                  onChange={(e) => {
-                    setAddress(e.target.value);
-                    if (e.target.value.trim() !== "") setAddressError(false);
-                  }}
-                  placeholder="e.g. Al Karama, Near Nesto, Building B, Apt 204"
-                  className={`w-full bg-white/5 border rounded-xl px-4 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors resize-none h-16 ${
-                    addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
-                  }`}
-                />
-                {addressError && (
-                  <span className="text-[10px] font-black text-red-400 tracking-wider">
-                    Please enter your delivery address to proceed.
-                  </span>
-                )}
+
+                {/* Building / Details Section */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
+                    Building, Floor & Flat No. *
+                  </label>
+                  <input
+                    type="text"
+                    value={addressDetails}
+                    onChange={(e) => {
+                      setAddressDetails(e.target.value);
+                      if (e.target.value.trim() !== "") setAddressError(false);
+                    }}
+                    placeholder="e.g. Karama Court, Floor 2, Apt 204"
+                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
+                      addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
+                    }`}
+                  />
+                  {addressError && (
+                    <span className="text-[10px] font-black text-red-400 tracking-wider">
+                      Please enter your building, floor, and room number.
+                    </span>
+                  )}
+                </div>
+                
               </div>
             )}
 
             {/* Submit Button */}
             <button
               onClick={() => {
-                if (orderType === "delivery" && address.trim() === "") {
+                if (orderType === "delivery" && addressDetails.trim() === "") {
                   setAddressError(true);
                   return;
                 }
