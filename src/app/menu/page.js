@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export default function MenuPage() {
@@ -14,6 +14,7 @@ export default function MenuPage() {
   const [isLocating, setIsLocating] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const addressDetailsRef = useRef("");
 
   useEffect(() => {
     if (isCartOpen) {
@@ -140,7 +141,7 @@ export default function MenuPage() {
     return Object.values(cart).some(item => item.price.includes("/") || item.price.includes("APS"));
   };
 
-  const getWhatsAppLink = () => {
+  const getWhatsAppLink = (detailsVal) => {
     let message = "Hi Vellari! I would like to place an order:\n\n";
     
     Object.values(cart).forEach((item) => {
@@ -153,7 +154,8 @@ export default function MenuPage() {
     message += `Order Type: ${typeLabel}\n`;
     
     if (orderType === "delivery") {
-      message += `Address: ${addressDetails}\n`;
+      const finalDetails = detailsVal !== undefined ? detailsVal : addressDetails;
+      message += `Address: ${finalDetails}\n`;
       if (address) {
         message += `Location Pin: ${address}\n`;
       }
@@ -694,10 +696,13 @@ export default function MenuPage() {
                         </label>
                         <input
                           type="text"
-                          value={addressDetails}
+                          ref={addressDetailsRef}
+                          defaultValue={addressDetails}
                           onChange={(e) => {
-                            setAddressDetails(e.target.value);
                             if (e.target.value.trim() !== "") setAddressError(false);
+                          }}
+                          onBlur={(e) => {
+                            setAddressDetails(e.target.value);
                           }}
                           placeholder="e.g. Karama Court, Floor 2, Apt 204"
                           className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-base text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
@@ -716,11 +721,13 @@ export default function MenuPage() {
                   {/* Submit Button */}
                   <button
                     onClick={() => {
-                      if (orderType === "delivery" && addressDetails.trim() === "") {
+                      const currentDetails = addressDetailsRef.current ? addressDetailsRef.current.value : addressDetails;
+                      if (orderType === "delivery" && currentDetails.trim() === "") {
                         setAddressError(true);
                         return;
                       }
-                      window.open(getWhatsAppLink(), "_self");
+                      setAddressDetails(currentDetails);
+                      window.open(getWhatsAppLink(currentDetails), "_self");
                     }}
                     className="w-full flex items-center justify-center gap-2.5 py-4 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-lg hover:scale-101 active:scale-99 uppercase cursor-pointer"
                   >
