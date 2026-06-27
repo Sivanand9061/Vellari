@@ -10,6 +10,36 @@ export default function MenuPage() {
   const [address, setAddress] = useState("");
   const [addressError, setAddressError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleShareLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    
+    setIsLocating(true);
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        setAddress((prev) => {
+          const cleanPrev = prev.replace(/📍 Location: https:\/\/www\.google\.com\/maps\?q=[-.\d]+,[-.\d]+\n?/, "");
+          return `📍 Location: ${mapsLink}\n${cleanPrev}`.trim();
+        });
+        setAddressError(false);
+        setIsLocating(false);
+      },
+      (error) => {
+        setIsLocating(false);
+        console.error("Geolocation error:", error);
+        alert("Could not retrieve exact location. Please ensure location permissions are enabled on your browser/device, or enter your address manually.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -511,9 +541,22 @@ export default function MenuPage() {
             {/* Dynamic Delivery Address Input */}
             {orderType === "delivery" && (
               <div className="flex flex-col gap-1.5 animate-fade-in">
-                <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
-                  Delivery Address (Area, Building, Flat) *
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
+                    Delivery Address (Area, Building, Flat) *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleShareLocation}
+                    disabled={isLocating}
+                    className="text-[9px] font-black text-brandGold bg-white/5 border border-brandGold/35 hover:border-brandGold hover:bg-white/10 rounded px-2.5 py-1 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[10px]">
+                      my_location
+                    </span>
+                    {isLocating ? "LOCATING..." : "PIN LOCATION"}
+                  </button>
+                </div>
                 <textarea
                   value={address}
                   onChange={(e) => {
