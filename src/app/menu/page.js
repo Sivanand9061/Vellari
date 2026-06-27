@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function MenuPage() {
@@ -9,6 +9,35 @@ export default function MenuPage() {
   const [orderType, setOrderType] = useState("delivery");
   const [address, setAddress] = useState("");
   const [addressError, setAddressError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem("vellari_cart");
+      const savedOrderType = localStorage.getItem("vellari_order_type");
+      const savedAddress = localStorage.getItem("vellari_address");
+
+      if (savedCart) setCart(JSON.parse(savedCart));
+      if (savedOrderType) setOrderType(savedOrderType);
+      if (savedAddress) setAddress(savedAddress);
+    } catch (e) {
+      console.error("Failed to load cart from localStorage", e);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save cart to localStorage when it changes
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem("vellari_cart", JSON.stringify(cart));
+      localStorage.setItem("vellari_order_type", orderType);
+      localStorage.setItem("vellari_address", address);
+    } catch (e) {
+      console.error("Failed to save cart to localStorage", e);
+    }
+  }, [cart, orderType, address, isLoaded]);
 
   const parsePrice = (priceStr) => {
     if (priceStr.includes("APS")) return 0;
