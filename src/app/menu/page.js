@@ -543,9 +543,9 @@ export default function MenuPage() {
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-full max-w-md bg-brandDark border-l border-brandGreen/25 h-full flex flex-col shadow-2xl z-10 animate-fade-in-up">
+          <div className="relative w-full max-w-md bg-brandDark border-l border-brandGreen/25 h-full flex flex-col shadow-2xl z-10 animate-fade-in">
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-5 border-b border-white/10">
+            <div className="flex justify-between items-center px-6 py-5 border-b border-white/10 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-brandGold text-[20px]">shopping_cart</span>
                 <h3 className="text-sm font-black text-white tracking-widest uppercase">Your Cart</h3>
@@ -558,165 +558,169 @@ export default function MenuPage() {
               </button>
             </div>
 
-            {/* Cart Items List */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
-              {Object.values(cart).length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <span className="material-symbols-outlined text-white/20 text-5xl mb-4">shopping_cart_off</span>
-                  <p className="text-xs text-white/50 font-bold uppercase tracking-wider">Your cart is empty</p>
-                  <button
-                    onClick={() => setIsCartOpen(false)}
-                    className="mt-4 text-xs font-black text-brandGold hover:underline cursor-pointer"
-                  >
-                    Browse Menu
-                  </button>
-                </div>
-              ) : (
-                Object.values(cart).map((item) => (
-                  <div key={item.name} className="flex justify-between items-center py-3.5 border-b border-white/5">
-                    <div className="flex flex-col gap-0.5 max-w-[60%]">
-                      <span className="text-xs font-black text-white/90">{item.name}</span>
-                      <span className="text-[10px] text-brandGold font-bold">{item.price} each</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-2.5 py-1">
-                      <button
-                        onClick={() => removeFromCart(item.name)}
-                        className="text-xs font-black text-white/70 hover:text-white px-1.5 cursor-pointer focus:outline-none"
-                      >
-                        −
-                      </button>
-                      <span className="text-xs font-black text-white min-w-[12px] text-center">{item.quantity}</span>
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="text-xs font-black text-white/70 hover:text-white px-1.5 cursor-pointer focus:outline-none"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Drawer Footer (Checkout Controls) */}
-            {Object.values(cart).length > 0 && (
-              <div className="p-6 border-t border-white/10 bg-white/2 flex flex-col gap-4 overflow-y-auto max-h-[60%]">
-                {/* Items Count & Subtotal */}
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-white/70 font-medium">Subtotal ({getCartCount()} items)</span>
-                  <span className="text-base font-black text-brandGold">
-                    AED {getCartSubtotal().toFixed(2)}{hasVariablePrices() && "*"}
-                  </span>
-                </div>
-
-                {/* Order Type Toggle Selector */}
-                <div className="grid grid-cols-3 gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
-                  {[
-                    { id: "delivery", label: "Delivery 🚗" },
-                    { id: "takeaway", label: "Takeaway 🛍️" },
-                    { id: "dine-in", label: "Dine-In 🍽️" }
-                  ].map((type) => (
+            {/* Scrollable Body Container */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
+              
+              {/* Cart Items List */}
+              <div className="flex flex-col gap-4">
+                {Object.values(cart).length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <span className="material-symbols-outlined text-white/20 text-5xl mb-4">shopping_cart_off</span>
+                    <p className="text-xs text-white/50 font-bold uppercase tracking-wider">Your cart is empty</p>
                     <button
-                      key={type.id}
-                      onClick={() => {
-                        setOrderType(type.id);
-                        if (type.id !== "delivery") setAddressError(false);
-                      }}
-                      className={`py-2 rounded-lg text-[9px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
-                        orderType === type.id
-                          ? "bg-brandGreen text-white shadow-md border border-brandGold/20"
-                          : "text-white/60 hover:text-white hover:bg-white/5"
-                      }`}
+                      onClick={() => setIsCartOpen(false)}
+                      className="mt-4 text-xs font-black text-brandGold hover:underline cursor-pointer"
                     >
-                      {type.label}
+                      Browse Menu
                     </button>
-                  ))}
-                </div>
-
-                {/* Dynamic Delivery Address Input */}
-                {orderType === "delivery" && (
-                  <div className="flex flex-col gap-3">
-                    {/* Geolocation Section */}
-                    <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10 gap-3">
-                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">GPS LOCATION</span>
-                        <span className="text-[9px] text-white/70 truncate font-mono">
-                          {address ? address : "No location pinned (Optional)"}
-                        </span>
-                      </div>
-                      {address ? (
-                        <button
-                          type="button"
-                          onClick={() => setAddress("")}
-                          className="text-[9px] font-black text-red-400 hover:text-red-300 bg-white/5 border border-red-500/20 hover:border-red-500/40 rounded px-2 py-0.5 cursor-pointer transition-all flex items-center gap-0.5"
-                        >
-                          <span className="material-symbols-outlined text-[10px]">close</span>
-                          CLEAR
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleShareLocation}
-                          disabled={isLocating}
-                          className="text-[9px] font-black text-brandGold bg-white/5 border border-brandGold/35 hover:border-brandGold hover:bg-white/10 rounded px-2.5 py-1 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          <span className="material-symbols-outlined text-[10px]">
-                            my_location
-                          </span>
-                          {isLocating ? "LOCATING..." : "PIN"}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Building Details */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
-                        Building, Floor & Flat No. *
-                      </label>
-                      <input
-                        type="text"
-                        value={addressDetails}
-                        onChange={(e) => {
-                          setAddressDetails(e.target.value);
-                          if (e.target.value.trim() !== "") setAddressError(false);
-                        }}
-                        placeholder="e.g. Karama Court, Floor 2, Apt 204"
-                        className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
-                          addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
-                        }`}
-                      />
-                      {addressError && (
-                        <span className="text-[10px] font-black text-red-400 tracking-wider">
-                          Please enter your building details.
-                        </span>
-                      )}
-                    </div>
                   </div>
-                )}
-
-                {/* Submit Button */}
-                <button
-                  onClick={() => {
-                    if (orderType === "delivery" && addressDetails.trim() === "") {
-                      setAddressError(true);
-                      return;
-                    }
-                    window.open(getWhatsAppLink(), "_self");
-                  }}
-                  className="w-full flex items-center justify-center gap-2.5 py-4 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-lg hover:scale-101 active:scale-99 uppercase cursor-pointer"
-                >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
-                  </svg>
-                  SEND ORDER TO WHATSAPP
-                </button>
-                {hasVariablePrices() && (
-                  <p className="text-[10px] text-white/40 text-center font-medium italic">
-                    * Prices of combos/sizes marked with slashes or &quot;APS&quot; are estimated at base value. Exact bill will be confirmed on WhatsApp.
-                  </p>
+                ) : (
+                  Object.values(cart).map((item) => (
+                    <div key={item.name} className="flex justify-between items-center py-3.5 border-b border-white/5">
+                      <div className="flex flex-col gap-0.5 max-w-[60%]">
+                        <span className="text-xs font-black text-white/90">{item.name}</span>
+                        <span className="text-[10px] text-brandGold font-bold">{item.price} each</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-2.5 py-1">
+                        <button
+                          onClick={() => removeFromCart(item.name)}
+                          className="text-xs font-black text-white/70 hover:text-white px-1.5 cursor-pointer focus:outline-none"
+                        >
+                          −
+                        </button>
+                        <span className="text-xs font-black text-white min-w-[12px] text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="text-xs font-black text-white/70 hover:text-white px-1.5 cursor-pointer focus:outline-none"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
-            )}
+
+              {/* Checkout Controls */}
+              {Object.values(cart).length > 0 && (
+                <div className="border-t border-white/10 pt-6 flex flex-col gap-4">
+                  {/* Items Count & Subtotal */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-white/70 font-medium">Subtotal ({getCartCount()} items)</span>
+                    <span className="text-base font-black text-brandGold">
+                      AED {getCartSubtotal().toFixed(2)}{hasVariablePrices() && "*"}
+                    </span>
+                  </div>
+
+                  {/* Order Type Toggle Selector */}
+                  <div className="grid grid-cols-3 gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                    {[
+                      { id: "delivery", label: "Delivery 🚗" },
+                      { id: "takeaway", label: "Takeaway 🛍️" },
+                      { id: "dine-in", label: "Dine-In 🍽️" }
+                    ].map((type) => (
+                      <button
+                        key={type.id}
+                        onClick={() => {
+                          setOrderType(type.id);
+                          if (type.id !== "delivery") setAddressError(false);
+                        }}
+                        className={`py-2 rounded-lg text-[9px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                          orderType === type.id
+                            ? "bg-brandGreen text-white shadow-md border border-brandGold/20"
+                            : "text-white/60 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Dynamic Delivery Address Input */}
+                  {orderType === "delivery" && (
+                    <div className="flex flex-col gap-3">
+                      {/* Geolocation Section */}
+                      <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10 gap-3">
+                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">GPS LOCATION</span>
+                          <span className="text-[9px] text-white/70 truncate font-mono">
+                            {address ? address : "No location pinned (Optional)"}
+                          </span>
+                        </div>
+                        {address ? (
+                          <button
+                            type="button"
+                            onClick={() => setAddress("")}
+                            className="text-[9px] font-black text-red-400 hover:text-red-300 bg-white/5 border border-red-500/20 hover:border-red-500/40 rounded px-2 py-0.5 cursor-pointer transition-all flex items-center gap-0.5"
+                          >
+                            <span className="material-symbols-outlined text-[10px]">close</span>
+                            CLEAR
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleShareLocation}
+                            disabled={isLocating}
+                            className="text-[9px] font-black text-brandGold bg-white/5 border border-brandGold/35 hover:border-brandGold hover:bg-white/10 rounded px-2.5 py-1 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined text-[10px]">
+                              my_location
+                            </span>
+                            {isLocating ? "LOCATING..." : "PIN"}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Building Details */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
+                          Building, Floor & Flat No. *
+                        </label>
+                        <input
+                          type="text"
+                          value={addressDetails}
+                          onChange={(e) => {
+                            setAddressDetails(e.target.value);
+                            if (e.target.value.trim() !== "") setAddressError(false);
+                          }}
+                          placeholder="e.g. Karama Court, Floor 2, Apt 204"
+                          className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
+                            addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
+                          }`}
+                        />
+                        {addressError && (
+                          <span className="text-[10px] font-black text-red-400 tracking-wider">
+                            Please enter your building details.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submit Button */}
+                  <button
+                    onClick={() => {
+                      if (orderType === "delivery" && addressDetails.trim() === "") {
+                        setAddressError(true);
+                        return;
+                      }
+                      window.open(getWhatsAppLink(), "_self");
+                    }}
+                    className="w-full flex items-center justify-center gap-2.5 py-4 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-lg hover:scale-101 active:scale-99 uppercase cursor-pointer"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
+                    </svg>
+                    SEND ORDER TO WHATSAPP
+                  </button>
+                  {hasVariablePrices() && (
+                    <p className="text-[10px] text-white/40 text-center font-medium italic">
+                      * Prices of combos/sizes marked with slashes or &quot;APS&quot; are estimated at base value. Exact bill will be confirmed on WhatsApp.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
