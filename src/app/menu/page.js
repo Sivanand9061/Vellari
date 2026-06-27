@@ -5,6 +5,86 @@ import Link from "next/link";
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("combos-specials");
+  const [cart, setCart] = useState({});
+  const [orderType, setOrderType] = useState("delivery");
+  const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState(false);
+
+  const parsePrice = (priceStr) => {
+    if (priceStr.includes("APS")) return 0;
+    const basePriceStr = priceStr.split("/")[0];
+    const match = basePriceStr.match(/\d+(\.\d+)?/);
+    return match ? parseFloat(match[0]) : 0;
+  };
+
+  const addToCart = (item) => {
+    setCart((prev) => {
+      const existing = prev[item.name];
+      if (existing) {
+        return {
+          ...prev,
+          [item.name]: { ...existing, quantity: existing.quantity + 1 },
+        };
+      }
+      return {
+        ...prev,
+        [item.name]: { ...item, quantity: 1 },
+      };
+    });
+  };
+
+  const removeFromCart = (itemName) => {
+    setCart((prev) => {
+      const existing = prev[itemName];
+      if (!existing) return prev;
+      if (existing.quantity <= 1) {
+        const copy = { ...prev };
+        delete copy[itemName];
+        return copy;
+      }
+      return {
+        ...prev,
+        [itemName]: { ...existing, quantity: existing.quantity - 1 },
+      };
+    });
+  };
+
+  const getCartCount = () => {
+    return Object.values(cart).reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const getCartSubtotal = () => {
+    return Object.values(cart).reduce((total, item) => {
+      const priceVal = parsePrice(item.price);
+      return total + priceVal * item.quantity;
+    }, 0);
+  };
+
+  const hasVariablePrices = () => {
+    return Object.values(cart).some(item => item.price.includes("/") || item.price.includes("APS"));
+  };
+
+  const getWhatsAppLink = () => {
+    let message = "Hi Vellari! I would like to place an order:\n\n";
+    
+    Object.values(cart).forEach((item) => {
+      message += `* ${item.quantity}x ${item.name} (${item.price} each)\n`;
+    });
+    
+    message += `\nTotal Estimated Bill: AED ${getCartSubtotal().toFixed(2)}${hasVariablePrices() ? "*" : ""}\n`;
+    
+    const typeLabel = orderType === "delivery" ? "Delivery 🚗" : orderType === "takeaway" ? "Takeaway 🛍️" : "Dine-In 🍽️";
+    message += `Order Type: ${typeLabel}\n`;
+    
+    if (orderType === "delivery") {
+      message += `Delivery Address: ${address}\n`;
+    }
+    
+    message += "\nPlease confirm my order and let me know the preparation time. Thank you!";
+    
+    return `https://api.whatsapp.com/send?phone=971568867131&text=${encodeURIComponent(message)}`;
+  };
+
 
   const categories = [
     { id: "combos-specials", name: "Combos & Specials" },
@@ -247,7 +327,7 @@ export default function MenuPage() {
   const filteredItems = menuData[activeCategory] || [];
 
   return (
-    <div className="min-h-screen bg-brandDark text-white font-sans antialiased pb-24">
+    <div className={`min-h-screen bg-brandDark text-white font-sans antialiased transition-all duration-300 ${getCartCount() > 0 ? "pb-96" : "pb-24"}`}>
       {/* Top Header */}
       <header className="sticky top-0 z-50 bg-brandDark/95 backdrop-blur-md border-b border-brandGreen/25 h-20">
         <div className="max-w-4xl mx-auto px-6 h-full flex justify-between items-center">
@@ -318,24 +398,150 @@ export default function MenuPage() {
                   {item.name}
                 </span>
               </div>
-              <span className="text-xs font-black text-brandGold ml-4 flex-shrink-0">
-                {item.price}
-              </span>
+              <div className="flex items-center gap-3.5 ml-4 flex-shrink-0">
+                <span className="text-xs font-black text-brandGold">
+                  {item.price}
+                </span>
+                {cart[item.name] ? (
+                  <div className="flex items-center gap-2 bg-brandGreen/40 border border-brandGold/35 rounded-full px-2 py-0.5 select-none">
+                    <button
+                      onClick={() => removeFromCart(item.name)}
+                      className="text-xs font-black text-white hover:text-brandGold px-1.5 transition-colors focus:outline-none"
+                    >
+                      −
+                    </button>
+                    <span className="text-[11px] font-black text-white min-w-[12px] text-center">
+                      {cart[item.name].quantity}
+                    </span>
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="text-xs font-black text-white hover:text-brandGold px-1.5 transition-colors focus:outline-none"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="text-[10px] font-black text-brandDark bg-brandGold hover:bg-brandGoldDark hover:scale-105 active:scale-95 px-2.5 py-0.5 rounded-full tracking-wider uppercase transition-all duration-200 focus:outline-none cursor-pointer"
+                  >
+                    ADD
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
       </main>
 
-      {/* Sticky WhatsApp Floating Button */}
-      <a
-        href="https://api.whatsapp.com/send?phone=971568867131"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 bg-whatsappGreen text-white text-xs font-black tracking-wider rounded-full shadow-2xl hover:bg-whatsappGreenDark hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
-      >
-        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
-        </svg>
-        PLACE ORDER NOW
-      </a>
+      {/* Sticky Cart Summary Bar */}
+      {getCartCount() > 0 && (
+        <div className="fixed bottom-0 left-0 w-full z-40 px-4 pb-6 pt-4 bg-brandDark/95 border-t border-brandGreen/25 backdrop-blur-md shadow-2xl transition-all duration-300">
+          <div className="max-w-xl mx-auto flex flex-col gap-4">
+            
+            {/* Header: Items Count & Subtotal */}
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-brandGreen tracking-widest uppercase">YOUR CART</span>
+                <span className="text-xs text-white/70 font-medium">
+                  {getCartCount()} {getCartCount() === 1 ? "item" : "items"} selected
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] font-black text-brandGreen tracking-widest uppercase block">SUBTOTAL</span>
+                <span className="text-base font-black text-brandGold">
+                  AED {getCartSubtotal().toFixed(2)}{hasVariablePrices() && "*"}
+                </span>
+              </div>
+            </div>
+
+            {/* Order Type Toggle Selector */}
+            <div className="grid grid-cols-3 gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+              {[
+                { id: "delivery", label: "Delivery 🚗" },
+                { id: "takeaway", label: "Takeaway 🛍️" },
+                { id: "dine-in", label: "Dine-In 🍽️" }
+              ].map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => {
+                    setOrderType(type.id);
+                    if (type.id !== "delivery") setAddressError(false);
+                  }}
+                  className={`py-2 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                    orderType === type.id
+                      ? "bg-brandGreen text-white shadow-md border border-brandGold/20"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Dynamic Delivery Address Input */}
+            {orderType === "delivery" && (
+              <div className="flex flex-col gap-1.5 animate-fade-in">
+                <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
+                  Delivery Address (Area, Building, Flat) *
+                </label>
+                <textarea
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (e.target.value.trim() !== "") setAddressError(false);
+                  }}
+                  placeholder="e.g. Al Karama, Near Nesto, Building B, Apt 204"
+                  className={`w-full bg-white/5 border rounded-xl px-4 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors resize-none h-16 ${
+                    addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
+                  }`}
+                />
+                {addressError && (
+                  <span className="text-[10px] font-black text-red-400 tracking-wider">
+                    Please enter your delivery address to proceed.
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              onClick={() => {
+                if (orderType === "delivery" && address.trim() === "") {
+                  setAddressError(true);
+                  return;
+                }
+                window.open(getWhatsAppLink(), "_self");
+              }}
+              className="w-full flex items-center justify-center gap-2.5 py-4 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-lg hover:scale-101 active:scale-99 uppercase cursor-pointer"
+            >
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
+              </svg>
+              SEND ORDER TO WHATSAPP
+            </button>
+            
+            {hasVariablePrices() && (
+              <p className="text-[10px] text-white/40 text-center font-medium italic">
+                * Prices of combos/sizes marked with slashes or &quot;APS&quot; are estimated at base value. Exact bill will be confirmed on WhatsApp.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sticky WhatsApp Floating Button (Fallback when cart is empty) */}
+      {getCartCount() === 0 && (
+        <a
+          href="https://api.whatsapp.com/send?phone=971568867131"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 bg-whatsappGreen text-white text-xs font-black tracking-wider rounded-full shadow-2xl hover:bg-whatsappGreenDark hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20 cursor-pointer"
+        >
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
+          </svg>
+          PLACE ORDER NOW
+        </a>
+      )}
     </div>
   );
 }
