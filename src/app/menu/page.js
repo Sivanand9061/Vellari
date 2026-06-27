@@ -13,6 +13,22 @@ export default function MenuPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (isCartOpen) {
+      setIsAnimating(true);
+      document.body.style.overflow = "hidden";
+      const timer = setTimeout(() => setIsAnimating(false), 500);
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = "";
+      };
+    } else {
+      setIsAnimating(false);
+      document.body.style.overflow = "";
+    }
+  }, [isCartOpen]);
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
@@ -543,7 +559,7 @@ export default function MenuPage() {
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-full max-w-md bg-brandDark border-l border-brandGreen/25 h-full flex flex-col shadow-2xl z-10 animate-fade-in">
+          <div className={`relative w-full max-w-md bg-brandDark border-l border-brandGreen/25 h-full flex flex-col shadow-2xl z-10 ${isAnimating ? "animate-fade-in" : ""}`}>
             {/* Header */}
             <div className="flex justify-between items-center px-6 py-5 border-b border-white/10 flex-shrink-0">
               <div className="flex items-center gap-2">
