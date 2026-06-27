@@ -684,7 +684,7 @@ export default function MenuPage() {
                             if (e.target.value.trim() !== "") setAddressError(false);
                           }}
                           placeholder="e.g. Karama Court, Floor 2, Apt 204"
-                          className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
+                          className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-base text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
                             addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
                           }`}
                         />
