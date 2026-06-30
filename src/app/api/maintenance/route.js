@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "edge"; // Edge runtime for ultra-fast execution
+export const dynamic = "force-dynamic"; // Do not statically optimize or cache this route
 
 export async function GET() {
   try {
@@ -10,9 +11,10 @@ export async function GET() {
       return NextResponse.json({ maintenanceMode: false });
     }
 
-    // Fetch directly from the Edge Config URL
+    // Fetch directly from the Edge Config URL, bypassing any caching
     const response = await fetch(url, {
-      next: { revalidate: 0 }, // Ensure it doesn't cache the result
+      cache: "no-store", // Do not cache this fetch request
+      next: { revalidate: 0 },
     });
 
     if (!response.ok) {
@@ -20,7 +22,13 @@ export async function GET() {
     }
 
     const data = await response.json();
-    return NextResponse.json({ maintenanceMode: !!data.maintenanceMode });
+    
+    // Support both root key-value pairs and nested items wrapper formats
+    const maintenanceMode = data.maintenanceMode !== undefined
+      ? data.maintenanceMode
+      : (data.items?.maintenanceMode || false);
+
+    return NextResponse.json({ maintenanceMode: !!maintenanceMode });
   } catch (error) {
     console.error("Direct Edge Config fetch error:", error);
     return NextResponse.json({ maintenanceMode: false });
