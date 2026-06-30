@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export default function MenuPage() {
-  const MAINTENANCE_MODE = true; // Set to false to disable maintenance mode
+  const MAINTENANCE_MODE = false; // Set to false to disable maintenance mode
 
   if (MAINTENANCE_MODE) {
     return <MaintenancePage />;
