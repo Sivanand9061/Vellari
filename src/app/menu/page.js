@@ -17,10 +17,6 @@ export default function MenuPage() {
       .catch((err) => console.error("Maintenance check error:", err));
   }, []);
 
-  if (isMaintenance) {
-    return <MaintenancePage />;
-  }
-
   const [activeCategory, setActiveCategory] = useState("combo");
   const [cart, setCart] = useState({});
   const [orderType, setOrderType] = useState("delivery");
@@ -103,6 +99,10 @@ export default function MenuPage() {
       console.error("Failed to save cart to localStorage", e);
     }
   }, [cart, orderType, address, addressDetails, isLoaded]);
+
+  if (isMaintenance) {
+    return <MaintenancePage />;
+  }
 
   const parsePrice = (priceStr) => {
     if (priceStr.includes("APS")) return 0;

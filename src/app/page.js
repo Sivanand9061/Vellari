@@ -17,10 +17,6 @@ export default function Home() {
       .catch((err) => console.error("Maintenance check error:", err));
   }, []);
 
-  if (isMaintenance) {
-    return <MaintenancePage />;
-  }
-
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -34,6 +30,10 @@ export default function Home() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  if (isMaintenance) {
+    return <MaintenancePage />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-brandLight">
