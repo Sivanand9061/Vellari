@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export default function MenuPage() {
+  const MAINTENANCE_MODE = true; // Set to false to disable maintenance mode
+
+  if (MAINTENANCE_MODE) {
+    return <MaintenancePage />;
+  }
+
   const [activeCategory, setActiveCategory] = useState("combo");
   const [cart, setCart] = useState({});
   const [orderType, setOrderType] = useState("delivery");
@@ -802,6 +808,96 @@ export default function MenuPage() {
           PLACE ORDER NOW
         </a>
       )}
+    </div>
+  );
+}
+
+function MaintenancePage() {
+  return (
+    <div className="min-h-screen bg-brandDark text-white font-sans flex flex-col justify-between items-center px-6 py-12 relative overflow-hidden select-none">
+      {/* Background radial glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brandGreen/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-brandGold/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+      {/* Header English Logo */}
+      <div className="w-full max-w-6xl flex justify-center md:justify-start items-center z-10">
+        <img
+          src="/logo_english.png"
+          alt="Vellari"
+          className="h-10 md:h-12 w-auto object-contain mix-blend-screen"
+        />
+      </div>
+
+      {/* Main Card Content */}
+      <div className="max-w-md w-full bg-white/2 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-10 text-center shadow-2xl flex flex-col items-center gap-6 z-10">
+        {/* Malayalam logo with pulsing ring */}
+        <div className="relative flex items-center justify-center mb-2">
+          <div className="absolute inset-0 bg-brandGold/20 rounded-full blur-xl animate-pulse"></div>
+          <img
+            src="/logo_malayalam.png"
+            alt="വെള്ളരി"
+            className="h-20 w-auto object-contain mix-blend-screen relative z-10"
+          />
+        </div>
+
+        {/* Status indicator */}
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brandGold/15 border border-brandGold/30 text-brandGold text-[10px] font-black tracking-widest uppercase rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-brandGold animate-ping"></span>
+          Cooking Up Upgrades
+        </span>
+
+        {/* Message */}
+        <div className="flex flex-col gap-4">
+          <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-wider">
+            Upgrading Our System 🍲
+          </h2>
+          <p className="text-xs text-white/70 leading-relaxed font-medium">
+            We are currently cooking up some exciting digital upgrades to make your ordering experience faster and smoother! We will be back online shortly.
+          </p>
+          <p className="text-xs text-brandGold font-bold leading-relaxed">
+            കൂടുതൽ മികച്ച സേവനങ്ങൾക്കായി ഞങ്ങളുടെ വെബ്സൈറ്റ് അപ്ഗ്രേഡ് ചെയ്യുകയാണ്. ഉടൻ തന്നെ തിരിച്ചെത്തുന്നതാണ്!
+          </p>
+        </div>
+
+        <div className="w-full h-px bg-white/10 my-1"></div>
+
+        {/* Call to Order CTA */}
+        <div className="flex flex-col gap-2.5 w-full">
+          <span className="text-[9px] font-black text-white/50 tracking-widest uppercase">
+            Order directly via call:
+          </span>
+          <a
+            href="tel:+971568867131"
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-brandGreen hover:bg-brandGreenDark text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-md border border-brandGold/20 hover:scale-102 active:scale-98"
+          >
+            <span className="material-symbols-outlined text-[16px] text-brandGold">call</span>
+            +971 56 886 7131
+          </a>
+          <a
+            href="tel:+97148342856"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white/90 text-[11px] font-bold tracking-widest rounded-xl transition-all border border-white/10"
+          >
+            <span className="material-symbols-outlined text-[14px]">phone_in_talk</span>
+            +971 4 834 2856
+          </a>
+        </div>
+      </div>
+
+      {/* Footer Socials */}
+      <div className="flex flex-col items-center gap-3 z-10">
+        <a
+          href="https://www.instagram.com/vellari_restaurant?igsh=emxoZG9jY3pjM2Z3"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white/60 hover:text-brandGold transition-colors flex items-center gap-1.5 text-xs font-bold"
+        >
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+          </svg>
+          @vellari_restaurant
+        </a>
+        <p className="text-[10px] text-white/30 font-medium">© 2026 Vellari Karama. All rights reserved.</p>
+      </div>
     </div>
   );
 }
