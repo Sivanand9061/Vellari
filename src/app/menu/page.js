@@ -4,9 +4,20 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export default function MenuPage() {
-  const MAINTENANCE_MODE = false; // Set to false to disable maintenance mode
+  const [isMaintenance, setIsMaintenance] = useState(false);
 
-  if (MAINTENANCE_MODE) {
+  useEffect(() => {
+    fetch("/api/maintenance")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.maintenanceMode) {
+          setIsMaintenance(true);
+        }
+      })
+      .catch((err) => console.error("Maintenance check error:", err));
+  }, []);
+
+  if (isMaintenance) {
     return <MaintenancePage />;
   }
 
