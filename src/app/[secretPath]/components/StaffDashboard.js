@@ -11,13 +11,10 @@ export default function StaffDashboard() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   
-  // Audio alarm for new orders
   const audioContextRef = useRef(null);
 
-  // Simple PIN code stored in environment variables (defaults to 8867 if not set)
   const STAFF_PIN = process.env.NEXT_PUBLIC_STAFF_PIN || "8867";
 
-  // Check local session storage for PIN auth so they don't have to re-enter it on page refresh
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("vellari_staff_auth");
     if (savedAuth === "true") {
@@ -26,11 +23,9 @@ export default function StaffDashboard() {
     setIsLoaded(true);
   }, []);
 
-  // Fetch initial active orders and listen to real-time updates
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // 1. Fetch current active orders (only pending and accepted, no completed/cancelled)
     const fetchOrders = async () => {
       const { data, error } = await supabase
         .from("orders")
@@ -48,7 +43,6 @@ export default function StaffDashboard() {
       }
     };
 
-    // 2. Fetch current maintenance mode setting
     const fetchSettings = async () => {
       const { data, error } = await supabase
         .from("settings")
@@ -66,7 +60,6 @@ export default function StaffDashboard() {
     fetchOrders();
     fetchSettings();
 
-    // Play a short notification chime
     const playChime = () => {
       try {
         if (!audioContextRef.current) {
@@ -76,8 +69,8 @@ export default function StaffDashboard() {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.1, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
         osc.connect(gain);
@@ -89,24 +82,20 @@ export default function StaffDashboard() {
       }
     };
 
-    // 3. Subscribe to real-time inserts/updates on orders table
     const ordersSubscription = supabase
       .channel("active-orders-channel")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
         async (payload) => {
-          // Play sound on new order insert
           if (payload.eventType === "INSERT") {
             playChime();
           }
-          // Refresh list to keep it updated with customer details joined
           fetchOrders();
         }
       )
       .subscribe();
 
-    // 4. Subscribe to settings updates
     const settingsSubscription = supabase
       .channel("settings-channel")
       .on(
@@ -126,14 +115,12 @@ export default function StaffDashboard() {
     };
   }, [isAuthenticated]);
 
-  // Handle PIN entry submissions
   const handlePinSubmit = (e) => {
     e?.preventDefault();
     if (pin === STAFF_PIN) {
       setIsAuthenticated(true);
       setPinError(false);
       sessionStorage.setItem("vellari_staff_auth", "true");
-      // Initialize AudioContext on user interaction
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     } else {
       setPinError(true);
@@ -153,7 +140,6 @@ export default function StaffDashboard() {
     setPinError(false);
   };
 
-  // Toggle Maintenance Mode
   const handleToggleMaintenance = async () => {
     const nextState = !maintenanceMode;
     setMaintenanceMode(nextState);
@@ -166,13 +152,11 @@ export default function StaffDashboard() {
     if (error) {
       console.error("Error saving maintenance mode setting:", error);
       alert("Failed to update status. Please check connection.");
-      setMaintenanceMode(!nextState); // Rollback
+      setMaintenanceMode(!nextState);
     }
   };
 
-  // Order Actions
   const handleAcceptOrder = async (orderId, customerPhone, isNewCustomer) => {
-    // 1. Update order status to accepted
     const { error: orderErr } = await supabase
       .from("orders")
       .update({ status: "accepted" })
@@ -183,7 +167,6 @@ export default function StaffDashboard() {
       return;
     }
 
-    // 2. If it was a new customer, verify them now in database
     if (isNewCustomer) {
       const { error: custErr } = await supabase
         .from("customers")
@@ -223,11 +206,9 @@ export default function StaffDashboard() {
     );
   }
 
-  // --- PIN AUTHENTICATION LOGIN VIEW ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#111111] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none font-sans">
-        {/* Background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#006B2B]/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-xs w-full flex flex-col items-center gap-6 z-10 text-center">
@@ -238,7 +219,6 @@ export default function StaffDashboard() {
             <p className="text-[10px] font-bold text-white/40 tracking-wider">ENTER 4-DIGIT PIN CODE TO ACCESS</p>
           </div>
 
-          {/* Dots Indicator */}
           <div className="flex justify-center gap-4 py-4">
             {[0, 1, 2, 3].map((index) => (
               <div
@@ -254,7 +234,6 @@ export default function StaffDashboard() {
             ))}
           </div>
 
-          {/* Keypad Grid */}
           <div className="grid grid-cols-3 gap-3 w-full">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
               <button
@@ -289,10 +268,8 @@ export default function StaffDashboard() {
     );
   }
 
-  // --- MAIN STAFF ACTIVE ORDERS DASHBOARD ---
   return (
     <div className="min-h-screen bg-[#111111] text-white flex flex-col font-sans">
-      {/* Top Header Bar */}
       <header className="bg-[#111111] border-b border-white/5 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <img src="/logo_english.png" alt="Vellari" className="h-8 w-auto object-contain mix-blend-screen" />
@@ -300,7 +277,6 @@ export default function StaffDashboard() {
           <span className="text-[10px] font-black tracking-widest uppercase text-white/50">LIVE ORDERS</span>
         </div>
 
-        {/* Dynamic Maintenance Toggle */}
         <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-5 py-2.5">
           <div className="flex flex-col text-left">
             <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">WEBSITE STATUS</span>
@@ -323,9 +299,7 @@ export default function StaffDashboard() {
         </div>
       </header>
 
-      {/* Main Board Container */}
       <main className="flex-1 p-6 flex flex-col gap-6">
-        {/* Active Orders List */}
         {activeOrders.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-12 select-none">
             <span className="material-symbols-outlined text-4xl text-white/10 mb-3">restaurant</span>
@@ -348,7 +322,6 @@ export default function StaffDashboard() {
                       : "border-white/5"
                   }`}
                 >
-                  {/* Status Banner */}
                   {isPendingConfirm && (
                     <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-2xl">
                       CALL VERIFICATION REQUIRED
@@ -356,7 +329,6 @@ export default function StaffDashboard() {
                   )}
 
                   <div className="flex flex-col gap-4">
-                    {/* Customer Header */}
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="text-base font-black tracking-wide">
@@ -379,7 +351,6 @@ export default function StaffDashboard() {
 
                     <div className="h-px bg-white/5"></div>
 
-                    {/* Order Items List */}
                     <div className="flex flex-col gap-2">
                       <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">ITEMS</span>
                       <ul className="flex flex-col gap-2">
@@ -397,7 +368,6 @@ export default function StaffDashboard() {
 
                     <div className="h-px bg-white/5"></div>
 
-                    {/* Address details */}
                     {order.order_type === "delivery" && (
                       <div className="flex flex-col gap-2 text-xs">
                         <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">ADDRESS</span>
@@ -416,7 +386,6 @@ export default function StaffDashboard() {
                     )}
                   </div>
 
-                  {/* Actions Buttons */}
                   <div className="flex flex-col gap-2 mt-auto">
                     {order.status === "pending_verification" || order.status === "pending_accept" ? (
                       <button
