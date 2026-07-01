@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1234";
+  const ADMIN_PIN = (process.env.NEXT_PUBLIC_ADMIN_PIN || "1234").trim().replace(/['"]/g, "");
 
   // Check auth on mount
   useEffect(() => {

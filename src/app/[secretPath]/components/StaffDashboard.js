@@ -13,7 +13,7 @@ export default function StaffDashboard() {
   
   const audioContextRef = useRef(null);
 
-  const STAFF_PIN = process.env.NEXT_PUBLIC_STAFF_PIN || "8867";
+  const STAFF_PIN = (process.env.NEXT_PUBLIC_STAFF_PIN || "8867").trim().replace(/['"]/g, "");
 
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("vellari_staff_auth");
