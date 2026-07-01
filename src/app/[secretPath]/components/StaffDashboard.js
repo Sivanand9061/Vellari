@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/utils/supabase";
 
-export default function StaffDashboard() {
+export default function StaffDashboard({ pinCode }) {
   const [pin, setPin] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinError, setPinError] = useState(false);
@@ -13,7 +13,7 @@ export default function StaffDashboard() {
   
   const audioContextRef = useRef(null);
 
-  const STAFF_PIN = (process.env.NEXT_PUBLIC_STAFF_PIN || "8867").trim().replace(/['"]/g, "");
+  const STAFF_PIN = (pinCode || "8867").trim().replace(/['"]/g, "");
 
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("vellari_staff_auth");

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ pinCode }) {
   const [pin, setPin] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinError, setPinError] = useState(false);
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  const ADMIN_PIN = (process.env.NEXT_PUBLIC_ADMIN_PIN || "1234").trim().replace(/['"]/g, "");
+  const ADMIN_PIN = (pinCode || "1234").trim().replace(/['"]/g, "");
 
   // Check auth on mount
   useEffect(() => {
