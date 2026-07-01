@@ -57,13 +57,7 @@ INSERT INTO public.settings (key, value)
 VALUES ('maintenanceMode', 'false'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 
--- 4. Enable Real-Time for Orders
--- This is critical for the Staff Screen to receive live popups!
-begin;
-  -- Remove the table from publication if it exists to prevent duplicates
-  alter publication supabase_realtime rx active_schema public;
-  drop publication if exists supabase_realtime;
-  
-  -- Create publication with realtime enabled
-  create publication supabase_realtime for table public.orders, public.settings;
-commit;
+-- 4. Enable Real-Time for Orders & Settings
+-- This is critical for the Staff and Admin Screens to receive live updates!
+alter publication supabase_realtime drop table if exists public.orders, public.settings;
+alter publication supabase_realtime add table public.orders, public.settings;
