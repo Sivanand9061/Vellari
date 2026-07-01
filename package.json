@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
     "@vercel/edge-config": "^1.4.3",
     "next": "16.2.9",
     "react": "19.2.4",
