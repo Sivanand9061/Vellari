@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS public.customers (
     phone TEXT PRIMARY KEY,
     name TEXT,
-    status TEXT DEFAULT 'verified' CHECK (status IN ('verified', 'blocked')),
+    status TEXT DEFAULT 'pending_verification' CHECK (status IN ('verified', 'blocked', 'pending_verification')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
