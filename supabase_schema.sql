@@ -59,5 +59,4 @@ ON CONFLICT (key) DO NOTHING;
 
 -- 4. Enable Real-Time for Orders & Settings
 -- This is critical for the Staff and Admin Screens to receive live updates!
-alter publication supabase_realtime drop table if exists public.orders, public.settings;
-alter publication supabase_realtime add table public.orders, public.settings;
+alter publication supabase_realtime set table public.orders, public.settings;
