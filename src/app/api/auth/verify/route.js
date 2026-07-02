@@ -14,9 +14,8 @@ export async function POST(request) {
 
     const cleanPin = pin.trim();
 
-    // Read secure server-side environment variables (WITHOUT NEXT_PUBLIC_ prefix)
-    const STAFF_PIN = (process.env.STAFF_PIN || "8867").trim().replace(/['"]/g, "");
-    const ADMIN_PIN = (process.env.ADMIN_PIN || "1234").trim().replace(/['"]/g, "");
+    const STAFF_PIN = (process.env.STAFF_PIN || "4545").trim().replace(/['"]/g, "");
+    const ADMIN_PIN = (process.env.ADMIN_PIN || "5656").trim().replace(/['"]/g, "");
 
     let isValid = false;
 
