@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { supabase } from "@/utils/supabase";
 
 export default function Home() {
   const [isMaintenance, setIsMaintenance] = useState(false);
@@ -29,6 +30,59 @@ export default function Home() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const [activeOrderId, setActiveOrderId] = useState(null);
+
+  // Check for active order on mount and subscribe in real-time
+  useEffect(() => {
+    const checkActiveOrder = async () => {
+      const savedId = localStorage.getItem("vellari_active_order_id");
+      if (!savedId) return;
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("id", savedId)
+        .single();
+
+      if (error || !data) {
+        localStorage.removeItem("vellari_active_order_id");
+        return;
+      }
+
+      if (data.status === "completed" || data.status === "cancelled") {
+        localStorage.removeItem("vellari_active_order_id");
+      } else {
+        setActiveOrderId(savedId);
+      }
+    };
+
+    checkActiveOrder();
+
+    const savedId = localStorage.getItem("vellari_active_order_id");
+    if (!savedId) return;
+
+    const channel = supabase
+      .channel(`home-active-order-${savedId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${savedId}` },
+        (payload) => {
+          if (payload.new) {
+            const status = payload.new.status;
+            if (status === "completed" || status === "cancelled") {
+              localStorage.removeItem("vellari_active_order_id");
+              setActiveOrderId(null);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (isMaintenance) {
@@ -206,6 +260,25 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {/* Active Order Recovery Banner */}
+      {activeOrderId && (
+        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-[350px] z-40 bg-brandDark/95 backdrop-blur-md border border-brandGold/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-brandGold text-xl animate-spin">sync</span>
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">ACTIVE ORDER</span>
+              <span className="text-[10px] text-white/70 font-bold">Your order is being processed!</span>
+            </div>
+          </div>
+          <Link
+            href={`/order/${activeOrderId}`}
+            className="px-4 py-2 bg-brandGold hover:bg-brandGold/90 text-black text-[9px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+          >
+            Track
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
