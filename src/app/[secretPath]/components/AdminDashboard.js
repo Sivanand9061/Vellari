@@ -13,6 +13,41 @@ export default function AdminDashboard() {
   // Tabs: 'overview', 'orders', 'customers'
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Date Helpers for Owner Filters
+  const getTodayRange = () => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    return { start: start.toISOString(), end: end.toISOString() };
+  };
+
+  const getYesterdayRange = () => {
+    const start = new Date();
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setDate(end.getDate() - 1);
+    end.setHours(23, 59, 59, 999);
+    return { start: start.toISOString(), end: end.toISOString() };
+  };
+
+  const getLast7DaysRange = () => {
+    const start = new Date();
+    start.setDate(start.getDate() - 7);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    return { start: start.toISOString(), end: end.toISOString() };
+  };
+
+  const [datePreset, setDatePreset] = useState("today"); // 'today', 'yesterday', 'week', 'custom'
+  const [startDate, setStartDate] = useState(() => getTodayRange().start);
+  const [endDate, setEndDate] = useState(() => getTodayRange().end);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+
   // State Data
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -174,6 +209,41 @@ export default function AdminDashboard() {
     }
   };
 
+  // Date Preset Actions
+  const handlePresetChange = (preset) => {
+    setDatePreset(preset);
+    if (preset === "today") {
+      const range = getTodayRange();
+      setStartDate(range.start);
+      setEndDate(range.end);
+    } else if (preset === "yesterday") {
+      const range = getYesterdayRange();
+      setStartDate(range.start);
+      setEndDate(range.end);
+    } else if (preset === "week") {
+      const range = getLast7DaysRange();
+      setStartDate(range.start);
+      setEndDate(range.end);
+    } else if (preset === "custom") {
+      setShowDatePicker(true);
+    }
+  };
+
+  const handleCustomDateSubmit = (e) => {
+    e.preventDefault();
+    if (!customStart || !customEnd) return;
+    
+    const start = new Date(customStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(customEnd);
+    end.setHours(23, 59, 59, 999);
+
+    setStartDate(start.toISOString());
+    setEndDate(end.toISOString());
+    setDatePreset("custom");
+    setShowDatePicker(false);
+  };
+
   // AI Chat Broadcast query
   const handleAiQuery = async (e) => {
     e.preventDefault();
@@ -191,7 +261,7 @@ export default function AdminDashboard() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${sessionStorage.getItem("vellari_admin_pin") || ""}`
         },
-        body: JSON.stringify({ question: userMsg })
+        body: JSON.stringify({ question: userMsg, startDate, endDate })
       });
 
       const data = await response.json();
@@ -211,14 +281,28 @@ export default function AdminDashboard() {
     }
   };
 
-  // Calculate Metrics (Only for completed orders, status 'completed')
-  const completedOrders = orders.filter((o) => o.status === "completed");
+  // Calculate Metrics filtered by the selected date range
+  const filteredOrdersByDate = orders.filter((o) => {
+    const time = new Date(o.created_at).getTime();
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    return time >= start && time <= end;
+  });
+
+  const filteredCustomersByDate = customers.filter((c) => {
+    const time = new Date(c.created_at).getTime();
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    return time >= start && time <= end;
+  });
+
+  const completedOrders = filteredOrdersByDate.filter((o) => o.status === "completed");
   const totalRevenue = completedOrders.reduce((sum, o) => sum + Number(o.total), 0);
-  const totalOrdersCount = orders.length;
-  const verifiedCustomersCount = customers.filter((c) => c.status === "verified").length;
+  const totalOrdersCount = filteredOrdersByDate.length;
+  const verifiedCustomersCount = filteredCustomersByDate.filter((c) => c.status === "verified").length;
 
   // Filter Orders for Logs Table
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = filteredOrdersByDate.filter((order) => {
     const matchPhone = order.customer_phone.includes(searchPhone.trim().replace(/\s+/g, ""));
     const matchStatus = statusFilter === "all" || order.status === statusFilter;
     const matchType = typeFilter === "all" || order.order_type === typeFilter;
@@ -354,6 +438,40 @@ export default function AdminDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 p-6 max-w-6xl w-full mx-auto flex flex-col gap-6">
         
+        {/* iOS-Style Date Preset Filter Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/2 border border-white/5 rounded-3xl p-4 md:px-6 md:py-4">
+          <div className="flex flex-col text-left">
+            <span className="text-[9px] font-black text-white/40 tracking-widest uppercase">ANALYTICS TIMEFRAME</span>
+            <span className="text-xs font-bold text-white/85 mt-0.5">
+              {new Date(startDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+              {startDate.split("T")[0] !== endDate.split("T")[0] && (
+                <> - {new Date(endDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</>
+              )}
+            </span>
+          </div>
+
+          <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 w-full sm:w-auto overflow-x-auto">
+            {[
+              { id: "today", label: "Today" },
+              { id: "yesterday", label: "Yesterday" },
+              { id: "week", label: "Last 7 Days" },
+              { id: "custom", label: "Custom Range 📅" }
+            ].map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => handlePresetChange(preset.id)}
+                className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase transition-all cursor-pointer whitespace-nowrap ${
+                  datePreset === preset.id
+                    ? "bg-[#F5B041] text-black shadow-md"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* TAB 1: OVERVIEW & AI */}
         {activeTab === "overview" && (
           <div className="flex flex-col gap-6">
@@ -595,6 +713,63 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
+
+      {/* iOS-Style Custom Date Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-6">
+          <div className="bg-[#161616] border border-white/10 rounded-3xl w-full max-w-sm p-6 md:p-8 shadow-2xl flex flex-col gap-6">
+            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+              <h3 className="text-xs font-black tracking-widest text-[#F5B041] uppercase">SELECT DATE RANGE</h3>
+              <button 
+                onClick={() => setShowDatePicker(false)}
+                className="text-white/40 hover:text-white cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleCustomDateSubmit} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">Start Date</label>
+                <input
+                  type="date"
+                  required
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#F5B041] transition-colors"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">End Date</label>
+                <input
+                  type="date"
+                  required
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#F5B041] transition-colors"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-[#F5B041] hover:bg-[#D49228] text-black text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+                >
+                  Apply Date Range
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDatePicker(false)}
+                  className="w-full py-2 bg-transparent text-white/40 text-[10px] font-black tracking-widest uppercase rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

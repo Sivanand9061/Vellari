@@ -16,7 +16,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { question } = body;
+    const { question, startDate, endDate } = body;
 
     if (!question) {
       return NextResponse.json(
@@ -32,15 +32,28 @@ export async function POST(request) {
       );
     }
 
-    // 1. Fetch orders and customers from Supabase
-    const { data: orders, error: ordersError } = await supabase
+    // 1. Fetch orders and customers from Supabase (with dynamic date range filtering)
+    let ordersQuery = supabase
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false });
 
-    const { data: customers, error: customersError } = await supabase
+    let customersQuery = supabase
       .from("customers")
       .select("*");
+
+    if (startDate && endDate) {
+      ordersQuery = ordersQuery
+        .gte("created_at", startDate)
+        .lte("created_at", endDate);
+
+      customersQuery = customersQuery
+        .gte("created_at", startDate)
+        .lte("created_at", endDate);
+    }
+
+    const { data: orders, error: ordersError } = await ordersQuery;
+    const { data: customers, error: customersError } = await customersQuery;
 
     if (ordersError || customersError) {
       console.error("Supabase error fetching admin stats:", ordersError || customersError);
@@ -115,10 +128,16 @@ export async function POST(request) {
     };
 
     // 3. Construct Gemini Prompt
+    const dateRangeString = startDate && endDate 
+      ? `from ${new Date(startDate).toLocaleString()} to ${new Date(endDate).toLocaleString()}`
+      : "all historical records";
+
     const systemPrompt = `You are a financial and operational AI analyst for Vellari Restaurant (a premium street-food restaurant in Karama, Dubai).
 Your task is to analyze the provided restaurant dataset and answer the owner's question directly, clearly, and concisely.
 
 Always format your response using professional, clean markdown. Avoid fluffy text or introductions. Provide calculations or lists directly.
+
+The current dataset is filtered for the timeframe: ${dateRangeString}.
 
 Here is the current restaurant dataset:
 ---
