@@ -295,10 +295,17 @@ export default function AdminDashboard() {
 
       const data = await response.json();
       
-      setAiChatHistory((prev) => [
-        ...prev,
-        { role: "assistant", content: data.answer || "Sorry, I could not analyze the data right now." }
-      ]);
+      if (response.ok && data.success) {
+        setAiChatHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: data.answer }
+        ]);
+      } else {
+        setAiChatHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: `⚠️ Error: ${data.error || "Could not analyze the data right now."}` }
+        ]);
+      }
     } catch (err) {
       console.error("AI query error:", err);
       setAiChatHistory((prev) => [
