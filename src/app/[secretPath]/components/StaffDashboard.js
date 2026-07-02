@@ -140,21 +140,7 @@ export default function StaffDashboard({ pinCode }) {
     setPinError(false);
   };
 
-  const handleToggleMaintenance = async () => {
-    const nextState = !maintenanceMode;
-    setMaintenanceMode(nextState);
 
-    const { error } = await supabase
-      .from("settings")
-      .update({ value: nextState })
-      .eq("key", "maintenanceMode");
-
-    if (error) {
-      console.error("Error saving maintenance mode setting:", error);
-      alert("Failed to update status. Please check connection.");
-      setMaintenanceMode(!nextState);
-    }
-  };
 
   const handleAcceptOrder = async (orderId, customerPhone, isNewCustomer) => {
     const { error: orderErr } = await supabase
@@ -277,25 +263,14 @@ export default function StaffDashboard({ pinCode }) {
           <span className="text-[10px] font-black tracking-widest uppercase text-white/50">LIVE ORDERS</span>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-5 py-2.5">
+        <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl px-5 py-2.5">
           <div className="flex flex-col text-left">
             <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">WEBSITE STATUS</span>
             <span className={`text-[11px] font-bold ${maintenanceMode ? "text-[#F5B041]" : "text-[#006B2B]"}`}>
               {maintenanceMode ? "PAUSED (Maintenance)" : "ONLINE (Accepting Orders)"}
             </span>
           </div>
-          <button
-            onClick={handleToggleMaintenance}
-            className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-              maintenanceMode ? "bg-[#F5B041]" : "bg-[#006B2B]"
-            }`}
-          >
-            <div
-              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
-                maintenanceMode ? "translate-x-6" : "translate-x-0"
-              }`}
-            ></div>
-          </button>
+          <span className={`w-2 h-2 rounded-full ${maintenanceMode ? "bg-[#F5B041]" : "bg-green-500 animate-pulse"}`}></span>
         </div>
       </header>
 

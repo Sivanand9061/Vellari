@@ -8,6 +8,7 @@ export default function AdminDashboard({ pinCode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinError, setPinError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
   
   // Tabs: 'overview', 'orders', 'customers'
   const [activeTab, setActiveTab] = useState("overview");
@@ -59,11 +60,42 @@ export default function AdminDashboard({ pinCode }) {
 
     if (custErr) console.error("Error fetching admin customers:", custErr);
     else setCustomers(custData || []);
+
+    // Fetch maintenance mode setting
+    const { data: settingsData, error: settingsErr } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "maintenanceMode")
+      .single();
+
+    if (settingsErr) {
+      console.error("Error fetching settings:", settingsErr);
+    } else if (settingsData) {
+      setMaintenanceMode(settingsData.value === true || settingsData.value === "true");
+    }
   };
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
+
+      // Subscribe to settings updates in real-time
+      const settingsSubscription = supabase
+        .channel("admin-settings-channel")
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "settings", filter: "key=eq.maintenanceMode" },
+          (payload) => {
+            if (payload.new) {
+              setMaintenanceMode(payload.new.value === true || payload.new.value === "true");
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(settingsSubscription);
+      };
     }
   }, [isAuthenticated]);
 
@@ -110,6 +142,23 @@ export default function AdminDashboard({ pinCode }) {
       console.error("Error updating block status:", error);
       alert("Failed to update status. Please try again.");
       fetchData(); // Reload original data
+    }
+  };
+
+  // Toggle Maintenance Mode
+  const handleToggleMaintenance = async () => {
+    const nextState = !maintenanceMode;
+    setMaintenanceMode(nextState);
+
+    const { error } = await supabase
+      .from("settings")
+      .update({ value: nextState })
+      .eq("key", "maintenanceMode");
+
+    if (error) {
+      console.error("Error saving maintenance mode setting:", error);
+      alert("Failed to update status. Please check connection.");
+      setMaintenanceMode(!nextState); // Rollback
     }
   };
 
@@ -241,6 +290,28 @@ export default function AdminDashboard({ pinCode }) {
         <div className="flex items-center gap-3">
           <img src="/logo_english.png" alt="Vellari" className="h-8 w-auto object-contain mix-blend-screen" />
           <span className="text-[10px] font-black tracking-widest uppercase text-[#F5B041] bg-[#F5B041]/10 px-2.5 py-1 rounded-full">OWNER PANEL</span>
+        </div>
+
+        {/* Dynamic Maintenance Toggle */}
+        <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-5 py-2">
+          <div className="flex flex-col text-left">
+            <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">WEBSITE STATUS</span>
+            <span className={`text-[11px] font-bold ${maintenanceMode ? "text-[#F5B041]" : "text-[#006B2B]"}`}>
+              {maintenanceMode ? "PAUSED (Maintenance)" : "ONLINE (Accepting Orders)"}
+            </span>
+          </div>
+          <button
+            onClick={handleToggleMaintenance}
+            className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+              maintenanceMode ? "bg-[#F5B041]" : "bg-[#006B2B]"
+            }`}
+          >
+            <div
+              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                maintenanceMode ? "translate-x-6" : "translate-x-0"
+              }`}
+            ></div>
+          </button>
         </div>
 
         {/* Tab Controls */}
