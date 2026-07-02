@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/utils/supabase";
 
-export default function StaffDashboard({ pinCode }) {
+export default function StaffDashboard() {
   const [pin, setPin] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinError, setPinError] = useState(false);
@@ -13,7 +13,7 @@ export default function StaffDashboard({ pinCode }) {
   
   const audioContextRef = useRef(null);
 
-  const STAFF_PIN = (pinCode || "8867").trim().replace(/['"]/g, "");
+
 
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("vellari_staff_auth");
@@ -115,15 +115,27 @@ export default function StaffDashboard({ pinCode }) {
     };
   }, [isAuthenticated]);
 
-  const handlePinSubmit = (e) => {
+  const handlePinSubmit = async (e) => {
     e?.preventDefault();
-    if (pin === STAFF_PIN) {
-      setIsAuthenticated(true);
-      setPinError(false);
-      sessionStorage.setItem("vellari_staff_auth", "true");
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    } else {
-      setPinError(true);
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, type: "staff" })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        setPinError(false);
+        sessionStorage.setItem("vellari_staff_auth", "true");
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } else {
+        setPinError(true);
+        setPin("");
+      }
+    } catch (err) {
+      console.error("Login verification error:", err);
+      alert("Verification server error. Please try again.");
       setPin("");
     }
   };

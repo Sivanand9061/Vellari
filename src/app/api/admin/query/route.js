@@ -6,7 +6,7 @@ export async function POST(request) {
     // Verify PIN from Authorization header
     const authHeader = request.headers.get("Authorization");
     const sentPin = authHeader ? authHeader.replace("Bearer ", "").trim() : "";
-    const ADMIN_PIN = (process.env.NEXT_PUBLIC_ADMIN_PIN || "1234").trim().replace(/['"]/g, "");
+    const ADMIN_PIN = (process.env.ADMIN_PIN || "1234").trim().replace(/['"]/g, "");
 
     if (sentPin !== ADMIN_PIN) {
       return NextResponse.json(

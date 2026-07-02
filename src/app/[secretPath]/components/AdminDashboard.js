@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
 
-export default function AdminDashboard({ pinCode }) {
+export default function AdminDashboard() {
   const [pin, setPin] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinError, setPinError] = useState(false);
@@ -30,7 +30,7 @@ export default function AdminDashboard({ pinCode }) {
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  const ADMIN_PIN = (pinCode || "1234").trim().replace(/['"]/g, "");
+
 
   // Check auth on mount
   useEffect(() => {
@@ -99,15 +99,27 @@ export default function AdminDashboard({ pinCode }) {
     }
   }, [isAuthenticated]);
 
-  const handlePinSubmit = (e) => {
+  const handlePinSubmit = async (e) => {
     e?.preventDefault();
-    if (pin === ADMIN_PIN) {
-      setIsAuthenticated(true);
-      setPinError(false);
-      sessionStorage.setItem("vellari_admin_auth", "true");
-      sessionStorage.setItem("vellari_admin_pin", pin);
-    } else {
-      setPinError(true);
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, type: "admin" })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        setPinError(false);
+        sessionStorage.setItem("vellari_admin_auth", "true");
+        sessionStorage.setItem("vellari_admin_pin", pin);
+      } else {
+        setPinError(true);
+        setPin("");
+      }
+    } catch (err) {
+      console.error("Login verification error:", err);
+      alert("Verification server error. Please try again.");
       setPin("");
     }
   };
