@@ -16,6 +16,24 @@ export async function POST(request) {
     // Clean phone number (remove spaces, etc.)
     const cleanPhone = customerPhone.trim().replace(/\s+/g, "");
 
+    // Rate-Limiting: Check if this phone number has placed an order in the last 60 seconds
+    const sixtySecondsAgo = new Date(Date.now() - 60000).toISOString();
+    const { data: recentOrders, error: limitError } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("customer_phone", cleanPhone)
+      .gt("created_at", sixtySecondsAgo)
+      .limit(1);
+
+    if (limitError) {
+      console.error("Rate-limiting check error:", limitError);
+    } else if (recentOrders && recentOrders.length > 0) {
+      return NextResponse.json(
+        { success: false, error: "Too many requests. Please wait 60 seconds before placing another order." },
+        { status: 429 }
+      );
+    }
+
     // 1. Check if customer exists in database
     const { data: customer, error: fetchError } = await supabase
       .from("customers")

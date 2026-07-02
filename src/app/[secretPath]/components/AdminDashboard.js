@@ -99,13 +99,13 @@ export default function AdminDashboard({ pinCode }) {
     }
   }, [isAuthenticated]);
 
-  // PIN submission
   const handlePinSubmit = (e) => {
     e?.preventDefault();
     if (pin === ADMIN_PIN) {
       setIsAuthenticated(true);
       setPinError(false);
       sessionStorage.setItem("vellari_admin_auth", "true");
+      sessionStorage.setItem("vellari_admin_pin", pin);
     } else {
       setPinError(true);
       setPin("");
@@ -175,7 +175,10 @@ export default function AdminDashboard({ pinCode }) {
     try {
       const response = await fetch("/api/admin/query", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${sessionStorage.getItem("vellari_admin_pin") || ""}`
+        },
         body: JSON.stringify({ question: userMsg })
       });
 

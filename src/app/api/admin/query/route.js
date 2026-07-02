@@ -3,6 +3,18 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
+    // Verify PIN from Authorization header
+    const authHeader = request.headers.get("Authorization");
+    const sentPin = authHeader ? authHeader.replace("Bearer ", "").trim() : "";
+    const ADMIN_PIN = (process.env.NEXT_PUBLIC_ADMIN_PIN || "1234").trim().replace(/['"]/g, "");
+
+    if (sentPin !== ADMIN_PIN) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized. Invalid Admin PIN." },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { question } = body;
 
