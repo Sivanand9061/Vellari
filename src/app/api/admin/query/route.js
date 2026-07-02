@@ -25,10 +25,10 @@ export async function POST(request) {
       );
     }
 
-    const geminiApiKey = process.env.GEMINI_API_KEY || "";
-    if (!geminiApiKey) {
+    const groqApiKey = process.env.GROQ_API_KEY || "";
+    if (!groqApiKey) {
       return NextResponse.json(
-        { success: true, answer: "⚠️ Gemini API key is missing. Add GEMINI_API_KEY to your environment variables to enable the AI analyst." }
+        { success: true, answer: "⚠️ Groq API key is missing. Add GROQ_API_KEY to your environment variables to enable the AI analyst." }
       );
     }
 
@@ -158,39 +158,37 @@ Last 40 Orders Logs:
 ${JSON.stringify(dataSummary.recentOrdersList, null, 2)}
 ---`;
 
-    // 4. Send request to Gemini API
+    // 4. Send request to Groq API (OpenAI-compatible endpoint)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${groqApiKey}`
         },
         body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: systemPrompt },
-                { text: `Question: ${question}` }
-              ]
-            }
-          ]
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: question }
+          ],
+          temperature: 0.2
         })
       }
     );
 
     if (!response.ok) {
       const errBody = await response.text();
-      console.error("Gemini API call failed:", errBody);
+      console.error("Groq API call failed:", errBody);
       return NextResponse.json(
-        { success: false, error: "Failed to connect to Gemini AI." },
+        { success: false, error: "Failed to connect to Groq AI." },
         { status: 502 }
       );
     }
 
     const resData = await response.json();
-    const aiAnswer = resData?.candidates?.[0]?.content?.parts?.[0]?.text || "No response received from AI.";
+    const aiAnswer = resData?.choices?.[0]?.message?.content || "No response received from AI.";
 
     return NextResponse.json({
       success: true,
