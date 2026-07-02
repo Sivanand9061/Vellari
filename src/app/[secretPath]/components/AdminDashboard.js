@@ -64,8 +64,7 @@ export default function AdminDashboard() {
     }
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
-
-
+  const [deliveryRadius, setDeliveryRadius] = useState("unlimited");
 
   // Check auth on mount
   useEffect(() => {
@@ -108,6 +107,17 @@ export default function AdminDashboard() {
     } else if (settingsData) {
       setMaintenanceMode(settingsData.value === true || settingsData.value === "true");
     }
+
+    // Fetch delivery radius setting
+    const { data: radiusData } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "deliveryRadius")
+      .single();
+
+    if (radiusData) {
+      setDeliveryRadius(String(radiusData.value));
+    }
   };
 
   useEffect(() => {
@@ -119,10 +129,15 @@ export default function AdminDashboard() {
         .channel("admin-settings-channel")
         .on(
           "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "settings", filter: "key=eq.maintenanceMode" },
+          { event: "UPDATE", schema: "public", table: "settings" },
           (payload) => {
             if (payload.new) {
-              setMaintenanceMode(payload.new.value === true || payload.new.value === "true");
+              if (payload.new.key === "maintenanceMode") {
+                setMaintenanceMode(payload.new.value === true || payload.new.value === "true");
+              }
+              if (payload.new.key === "deliveryRadius") {
+                setDeliveryRadius(String(payload.new.value));
+              }
             }
           }
         )
@@ -206,6 +221,20 @@ export default function AdminDashboard() {
       console.error("Error saving maintenance mode setting:", error);
       alert("Failed to update status. Please check connection.");
       setMaintenanceMode(!nextState); // Rollback
+    }
+  };
+
+  // Change Delivery Radius
+  const handleRadiusChange = async (newRadius) => {
+    setDeliveryRadius(newRadius);
+    const { error } = await supabase
+      .from("settings")
+      .upsert({ key: "deliveryRadius", value: newRadius });
+
+    if (error) {
+      console.error("Error saving delivery radius setting:", error);
+      alert("Failed to update delivery radius.");
+      fetchData(); // Rollback to actual setting
     }
   };
 
@@ -411,6 +440,30 @@ export default function AdminDashboard() {
               }`}
             ></div>
           </button>
+        </div>
+
+        {/* Delivery Radius Selector */}
+        <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-5 py-2">
+          <div className="flex flex-col text-left">
+            <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">DELIVERY LIMIT</span>
+            <span className="text-[11px] font-bold text-white/95 mt-0.5">
+              {deliveryRadius === "unlimited" || deliveryRadius === "0" ? "Unlimited" : `${deliveryRadius} km`}
+            </span>
+          </div>
+          <select
+            value={deliveryRadius}
+            onChange={(e) => handleRadiusChange(e.target.value)}
+            className="bg-[#111111] border border-white/10 focus:outline-none rounded-xl px-2.5 py-1.5 text-xs text-white cursor-pointer font-bold"
+          >
+            <option value="unlimited">Unlimited</option>
+            <option value="3">3 km</option>
+            <option value="5">5 km</option>
+            <option value="8">8 km</option>
+            <option value="10">10 km</option>
+            <option value="15">15 km</option>
+            <option value="20">20 km</option>
+            <option value="30">30 km</option>
+          </select>
         </div>
 
         {/* Tab Controls */}

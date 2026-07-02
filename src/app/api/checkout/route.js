@@ -41,6 +41,66 @@ export async function POST(request) {
       .eq("phone", cleanPhone)
       .single();
 
+    const isNewUser = fetchError || !customer;
+
+    // GPS coordinate validation for new delivery users
+    if (orderType === "delivery" && isNewUser && !addressGps) {
+      return NextResponse.json(
+        { success: false, error: "GPS location pin is mandatory for new users." },
+        { status: 400 }
+      );
+    }
+
+    // Enforce delivery radius if GPS coordinates are provided
+    if (orderType === "delivery" && addressGps) {
+      const parts = addressGps.split(",");
+      if (parts.length === 2) {
+        const custLat = parseFloat(parts[0]);
+        const custLng = parseFloat(parts[1]);
+
+        if (!isNaN(custLat) && !isNaN(custLng)) {
+          // Fetch delivery radius setting
+          const { data: radiusSetting } = await supabase
+            .from("settings")
+            .select("value")
+            .eq("key", "deliveryRadius")
+            .single();
+
+          const radiusValue = radiusSetting?.value;
+          
+          if (radiusValue && radiusValue !== "unlimited" && String(radiusValue) !== "0") {
+            const maxRadius = parseFloat(radiusValue);
+            if (!isNaN(maxRadius)) {
+              // Vellari Restaurant (Karama, Dubai) Coordinates
+              const REST_LAT = 25.2483;
+              const REST_LNG = 55.3015;
+
+              // Haversine formula
+              const R = 6371; // Earth radius in km
+              const dLat = (custLat - REST_LAT) * Math.PI / 180;
+              const dLon = (custLng - REST_LNG) * Math.PI / 180;
+              const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(REST_LAT * Math.PI / 180) * Math.cos(custLat * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              const distanceKm = R * c;
+
+              if (distanceKm > maxRadius) {
+                return NextResponse.json(
+                  { 
+                    success: false, 
+                    error: `Out of delivery zone. Distance is ${distanceKm.toFixed(1)} km, but our delivery limit is ${maxRadius} km.` 
+                  },
+                  { status: 400 }
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
     let needsVerification = false;
     let orderStatus = "pending_accept";
 

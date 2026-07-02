@@ -34,6 +34,8 @@ export default function MenuPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeOrderId, setActiveOrderId] = useState(null);
+  const [deliveryRadius, setDeliveryRadius] = useState("unlimited");
+  const [isNewUser, setIsNewUser] = useState(false);
   const addressDetailsRef = useRef("");
 
   useEffect(() => {
@@ -102,6 +104,21 @@ export default function MenuPage() {
     };
   }, []);
 
+  // Fetch delivery radius setting on mount
+  useEffect(() => {
+    const fetchRadiusSetting = async () => {
+      const { data } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "deliveryRadius")
+        .single();
+      if (data) {
+        setDeliveryRadius(String(data.value));
+      }
+    };
+    fetchRadiusSetting();
+  }, []);
+
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
@@ -124,6 +141,30 @@ export default function MenuPage() {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+  };
+
+  const getCoordinatesFromAddress = (addr) => {
+    if (!addr) return null;
+    const match = addr.match(/q=([-\d.]+),([-\d.]+)/);
+    if (match) {
+      return {
+        lat: parseFloat(match[1]),
+        lng: parseFloat(match[2])
+      };
+    }
+    return null;
+  };
+
+  const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
 
@@ -739,6 +780,16 @@ export default function MenuPage() {
                         setCustomerPhone(e.target.value);
                         if (e.target.value.trim() !== "") setPhoneError(false);
                       }}
+                      onBlur={async () => {
+                        const clean = customerPhone.trim().replace(/\s+/g, "");
+                        if (!clean) return;
+                        const { data } = await supabase
+                          .from("customers")
+                          .select("phone")
+                          .eq("phone", clean)
+                          .single();
+                        setIsNewUser(!data);
+                      }}
                       placeholder="e.g. +971568867131"
                       className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-base text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
                         phoneError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
@@ -783,7 +834,7 @@ export default function MenuPage() {
                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                           <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">GPS LOCATION</span>
                           <span className="text-[9px] text-white/70 truncate font-mono">
-                            {address ? address : "No location pinned (Optional)"}
+                            {address ? address : (isNewUser ? "Location Required (Mandatory for new users)" : "No location pinned (Optional)")}
                           </span>
                         </div>
                         {address ? (
@@ -849,7 +900,30 @@ export default function MenuPage() {
                         return;
                       }
 
-                      // 2. Address validation for delivery
+                      // 2. GPS Pin & Delivery Radius validation for delivery
+                      if (orderType === "delivery") {
+                        if (isNewUser && !address) {
+                          alert("GPS location pin is mandatory for new customers. Please click the GPS location 'PIN' button.");
+                          return;
+                        }
+
+                        if (address) {
+                          const coords = getCoordinatesFromAddress(address);
+                          if (coords && deliveryRadius && deliveryRadius !== "unlimited" && deliveryRadius !== "0") {
+                            const REST_LAT = 25.2483;
+                            const REST_LNG = 55.3015;
+                            const distance = getDistanceKm(REST_LAT, REST_LNG, coords.lat, coords.lng);
+                            const maxRadius = parseFloat(deliveryRadius);
+
+                            if (!isNaN(maxRadius) && distance > maxRadius) {
+                              alert(`Sorry, your location is ${distance.toFixed(1)} km away. Our delivery limit is ${maxRadius} km.`);
+                              return;
+                            }
+                          }
+                        }
+                      }
+
+                      // 3. Address validation for delivery
                       const currentDetails = addressDetailsRef.current ? addressDetailsRef.current.value : addressDetails;
                       if (orderType === "delivery" && currentDetails.trim() === "") {
                         setAddressError(true);
