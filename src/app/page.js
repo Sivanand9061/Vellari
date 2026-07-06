@@ -102,12 +102,9 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
           {/* English Logo on the Left */}
           <div
-            className="flex flex-col items-start cursor-pointer transition-transform duration-300 hover:scale-102"
+            className="flex items-center cursor-pointer transition-transform duration-300 hover:scale-102"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
-            <span className="text-[8px] md:text-[9px] font-black tracking-[0.25em] text-[#F5B041] uppercase mb-0.5 leading-none">
-              KL 10 RESTAURANT
-            </span>
             <img
               src="/logo_english.png"
               alt="Vellari Karama Dubai"
@@ -141,7 +138,10 @@ export default function Home() {
           {/* Content */}
           <div className="relative z-10 text-center px-6 max-w-3xl mx-auto flex flex-col items-center">
             {/* Malayalam Logo above Menu Button */}
-            <div className="animate-fade-in-up mb-8">
+            <div className="animate-fade-in-up mb-8 flex flex-col items-center">
+              <span className="text-[10px] md:text-[11px] font-black tracking-[0.3em] text-[#F5B041] uppercase mb-3 leading-none">
+                KL 10 RESTAURANT
+              </span>
               <img
                 src="/logo_malayalam.png"
                 alt="വെള്ളരി"
@@ -294,10 +294,7 @@ function MaintenancePage() {
       <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-brandGold/5 rounded-full blur-[100px] pointer-events-none"></div>
 
       {/* Header English Logo */}
-      <div className="w-full max-w-6xl flex flex-col justify-center md:justify-start items-center md:items-start z-10">
-        <span className="text-[8px] md:text-[9px] font-black tracking-[0.25em] text-[#F5B041] uppercase mb-0.5 leading-none">
-          KL 10 RESTAURANT
-        </span>
+      <div className="w-full max-w-6xl flex justify-center md:justify-start items-center z-10">
         <img
           src="/logo_english.png"
           alt="Vellari"
