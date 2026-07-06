@@ -72,6 +72,10 @@ export default function AdminDashboard() {
   const [dontAskDeleteAgain, setDontAskDeleteAgain] = useState(false);
   const [skipConfirmInFuture, setSkipConfirmInFuture] = useState(false);
 
+  // Bulk selection states
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [selectedCustomerPhones, setSelectedCustomerPhones] = useState([]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("vellari_skip_delete_confirm");
@@ -281,6 +285,49 @@ export default function AdminDashboard() {
     }
     setDeleteConfirmOpen(false);
     setOrderToDelete(null);
+  };
+
+  // Bulk Deletion handlers
+  const handleBulkDeleteOrders = async () => {
+    if (!selectedOrderIds.length) return;
+    if (!window.confirm(`Are you sure you want to permanently delete all ${selectedOrderIds.length} selected orders? This cannot be undone.`)) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .in("id", selectedOrderIds);
+
+    if (error) {
+      console.error("Error bulk deleting orders:", error);
+      alert("Failed to delete orders: " + error.message);
+    } else {
+      alert("Selected orders deleted successfully.");
+      setOrders((prev) => prev.filter((o) => !selectedOrderIds.includes(o.id)));
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleBulkDeleteCustomers = async () => {
+    if (!selectedCustomerPhones.length) return;
+    if (!window.confirm(`Are you sure you want to permanently delete all ${selectedCustomerPhones.length} selected customer records? This will set associated historical orders to NULL.`)) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("customers")
+      .delete()
+      .in("phone", selectedCustomerPhones);
+
+    if (error) {
+      console.error("Error bulk deleting customers:", error);
+      alert("Failed to delete customers: " + error.message);
+    } else {
+      alert("Selected customers deleted successfully.");
+      setCustomers((prev) => prev.filter((c) => !selectedCustomerPhones.includes(c.phone)));
+      setSelectedCustomerPhones([]);
+    }
   };
 
   // Date Preset Actions
@@ -698,11 +745,40 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Bulk Deletion Action Bar */}
+            {selectedOrderIds.length > 0 && (
+              <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-3 animate-fadeIn">
+                <span className="text-[10px] font-black tracking-widest text-red-400 uppercase">
+                  {selectedOrderIds.length} Order{selectedOrderIds.length > 1 ? "s" : ""} Selected
+                </span>
+                <button
+                  onClick={handleBulkDeleteOrders}
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl px-4 py-2 text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer shadow-md hover:scale-102 active:scale-98"
+                >
+                  Delete Selected
+                </button>
+              </div>
+            )}
+
             {/* Logs Table */}
             <div className="overflow-x-auto border border-white/5 rounded-2xl">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-white/5 text-[9px] font-black tracking-widest uppercase text-white/40 border-b border-white/5">
+                    <th className="p-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrderIds(filteredOrders.map(o => o.id));
+                          } else {
+                            setSelectedOrderIds([]);
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                      />
+                    </th>
                     <th className="p-4">Date</th>
                     <th className="p-4">Customer</th>
                     <th className="p-4">Type</th>
@@ -715,11 +791,25 @@ export default function AdminDashboard() {
                 <tbody>
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-white/30 font-medium">No orders matched the filters.</td>
+                      <td colSpan="8" className="p-8 text-center text-white/30 font-medium">No orders matched the filters.</td>
                     </tr>
                   ) : (
                     filteredOrders.map((order) => (
                       <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-all">
+                        <td className="p-4 w-10">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrderIds.includes(order.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedOrderIds(prev => [...prev, order.id]);
+                              } else {
+                                setSelectedOrderIds(prev => prev.filter(id => id !== order.id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                          />
+                        </td>
                         <td className="p-4 text-white/50">
                           {new Date(order.created_at).toLocaleDateString([], {
                             month: "short",
@@ -770,11 +860,40 @@ export default function AdminDashboard() {
               <h3 className="text-xs font-black tracking-widest uppercase">Customer Directory & Blocklist</h3>
             </div>
 
+             {/* Bulk Deletion Action Bar */}
+            {selectedCustomerPhones.length > 0 && (
+              <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-3 animate-fadeIn mb-4">
+                <span className="text-[10px] font-black tracking-widest text-red-400 uppercase">
+                  {selectedCustomerPhones.length} Customer{selectedCustomerPhones.length > 1 ? "s" : ""} Selected
+                </span>
+                <button
+                  onClick={handleBulkDeleteCustomers}
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl px-4 py-2 text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer shadow-md hover:scale-102 active:scale-98"
+                >
+                  Delete Selected Customers
+                </button>
+              </div>
+            )}
+
             {/* Customers list table */}
             <div className="overflow-x-auto border border-white/5 rounded-2xl">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-white/5 text-[9px] font-black tracking-widest uppercase text-white/40 border-b border-white/5">
+                    <th className="p-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={customers.length > 0 && selectedCustomerPhones.length === customers.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCustomerPhones(customers.map(c => c.phone));
+                          } else {
+                            setSelectedCustomerPhones([]);
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                      />
+                    </th>
                     <th className="p-4">Phone Number</th>
                     <th className="p-4">Date Registered</th>
                     <th className="p-4">Verification Status</th>
@@ -784,11 +903,25 @@ export default function AdminDashboard() {
                 <tbody>
                   {customers.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="p-8 text-center text-white/30 font-medium">No customers registered yet.</td>
+                      <td colSpan="5" className="p-8 text-center text-white/30 font-medium">No customers registered yet.</td>
                     </tr>
                   ) : (
                     customers.map((c) => (
                       <tr key={c.phone} className="border-b border-white/5 hover:bg-white/[0.01] transition-all">
+                        <td className="p-4 w-10">
+                          <input
+                            type="checkbox"
+                            checked={selectedCustomerPhones.includes(c.phone)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCustomerPhones(prev => [...prev, c.phone]);
+                              } else {
+                                setSelectedCustomerPhones(prev => prev.filter(ph => ph !== c.phone));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                          />
+                        </td>
                         <td className="p-4 font-black tracking-wider">{c.phone}</td>
                         <td className="p-4 text-white/50">
                           {new Date(c.created_at).toLocaleDateString([], {
