@@ -238,6 +238,25 @@ export default function AdminDashboard() {
     }
   };
 
+  // Delete Order permanently
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to permanently delete this order? This cannot be undone.")) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", orderId);
+
+    if (error) {
+      console.error("Error deleting order:", error);
+      alert("Failed to delete order: " + error.message);
+    } else {
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    }
+  };
+
   // Date Preset Actions
   const handlePresetChange = (preset) => {
     setDatePreset(preset);
@@ -664,12 +683,13 @@ export default function AdminDashboard() {
                     <th className="p-4">Items</th>
                     <th className="p-4">Bill</th>
                     <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="p-8 text-center text-white/30 font-medium">No orders matched the filters.</td>
+                      <td colSpan="7" className="p-8 text-center text-white/30 font-medium">No orders matched the filters.</td>
                     </tr>
                   ) : (
                     filteredOrders.map((order) => (
@@ -698,6 +718,14 @@ export default function AdminDashboard() {
                           }`}>
                             {order.status.replace("_", " ")}
                           </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <button
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg px-2.5 py-1 transition-all cursor-pointer font-bold"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))
