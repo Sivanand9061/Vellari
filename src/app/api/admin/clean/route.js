@@ -14,41 +14,23 @@ export async function POST(request) {
       );
     }
 
-    // 1. Delete test orders
-    const { data: deletedOrders, error: orderErr } = await supabase
+    // Temporarily fetch recent records to inspect database state
+    const { data: orders } = await supabase
       .from("orders")
-      .delete()
-      .eq("address_details", "Apt 101, Load Test Run")
-      .select();
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    if (orderErr) {
-      console.error("Error deleting test orders:", orderErr);
-      return NextResponse.json(
-        { success: false, error: "Database error deleting orders: " + orderErr.message },
-        { status: 500 }
-      );
-    }
-
-    // 2. Delete test customers (those starting with +97156 and having name as null)
-    const { data: deletedCusts, error: custErr } = await supabase
+    const { data: customers } = await supabase
       .from("customers")
-      .delete()
-      .like("phone", "+97156%")
-      .is("name", null)
-      .select();
-
-    if (custErr) {
-      console.error("Error deleting test customers:", custErr);
-      return NextResponse.json(
-        { success: false, error: "Database error deleting customers: " + custErr.message },
-        { status: 500 }
-      );
-    }
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
     return NextResponse.json({
       success: true,
-      deletedOrdersCount: deletedOrders?.length || 0,
-      deletedCustomersCount: deletedCusts?.length || 0
+      orders,
+      customers
     });
   } catch (error) {
     console.error("Cleanup endpoint error:", error);
