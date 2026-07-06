@@ -66,6 +66,21 @@ export default function AdminDashboard() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [deliveryRadius, setDeliveryRadius] = useState("unlimited");
 
+  // Delete Confirmation Modal States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [dontAskDeleteAgain, setDontAskDeleteAgain] = useState(false);
+  const [skipConfirmInFuture, setSkipConfirmInFuture] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("vellari_skip_delete_confirm");
+      if (saved === "true") {
+        setSkipConfirmInFuture(true);
+      }
+    }
+  }, []);
+
   // Check auth on mount
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("vellari_admin_auth");
@@ -238,12 +253,17 @@ export default function AdminDashboard() {
     }
   };
 
-  // Delete Order permanently
-  const handleDeleteOrder = async (orderId) => {
-    if (!window.confirm("Are you sure you want to permanently delete this order? This cannot be undone.")) {
-      return;
+  // Delete Order triggering sleek confirmation modal or instant deletion
+  const handleDeleteOrder = (orderId) => {
+    if (skipConfirmInFuture) {
+      executeOrderDeletion(orderId);
+    } else {
+      setOrderToDelete(orderId);
+      setDeleteConfirmOpen(true);
     }
+  };
 
+  const executeOrderDeletion = async (orderId) => {
     const { error } = await supabase
       .from("orders")
       .delete()
@@ -254,7 +274,13 @@ export default function AdminDashboard() {
       alert("Failed to delete order: " + error.message);
     } else {
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      if (dontAskDeleteAgain) {
+        localStorage.setItem("vellari_skip_delete_confirm", "true");
+        setSkipConfirmInFuture(true);
+      }
     }
+    setDeleteConfirmOpen(false);
+    setOrderToDelete(null);
   };
 
   // Date Preset Actions
@@ -855,6 +881,60 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sleek Delete Confirmation Modal */}
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-[#161616] border border-white/10 rounded-3xl max-w-sm w-full p-6 flex flex-col gap-5 shadow-2xl relative animate-scaleUp">
+            
+            <div className="flex items-center gap-3">
+              <div className="bg-red-500/10 text-red-500 rounded-full p-2.5 flex items-center justify-center">
+                <span className="material-symbols-outlined text-xl">delete_forever</span>
+              </div>
+              <div className="flex flex-col text-left">
+                <h4 className="text-sm font-black text-white uppercase tracking-wider">Confirm Deletion</h4>
+                <p className="text-[10px] text-white/50 mt-0.5">This action is permanent and cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-white/80 text-left leading-relaxed">
+              Are you sure you want to permanently delete this order from the database?
+            </p>
+
+            {/* Don't ask again checkbox */}
+            <label className="flex items-center gap-2.5 cursor-pointer py-1 select-none">
+              <input
+                type="checkbox"
+                checked={dontAskDeleteAgain}
+                onChange={(e) => setDontAskDeleteAgain(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#F5B041] focus:ring-0 cursor-pointer"
+              />
+              <span className="text-[10px] font-bold text-white/60 tracking-wide uppercase hover:text-white transition-colors">
+                Don't ask me again
+              </span>
+            </label>
+
+            {/* Controls */}
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <button
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setOrderToDelete(null);
+                }}
+                className="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-white rounded-xl py-2.5 text-xs font-black tracking-wider uppercase transition-all cursor-pointer text-center"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => executeOrderDeletion(orderToDelete)}
+                className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-400 rounded-xl py-2.5 text-xs font-black tracking-wider uppercase transition-all cursor-pointer text-center"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

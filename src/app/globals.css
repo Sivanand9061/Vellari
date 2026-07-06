@@ -55,6 +55,13 @@
   }
 }
 
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+.animate-scaleUp {
+  animation: fadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 :root {
   --background: #FFFDF9;
   --foreground: #111111;
