@@ -1,24 +1,44 @@
 import { supabase } from "@/utils/supabase";
 import { NextResponse } from "next/server";
 
+export async function GET(request) {
+  return handleCleanup(request);
+}
+
 export async function POST(request) {
+  return handleCleanup(request);
+}
+
+async function handleCleanup(request) {
   try {
-    const authHeader = request.headers.get("Authorization") || "";
-    const pin = authHeader.replace("Bearer ", "").trim();
+    // 1. Resolve PIN
+    let sentPin = "";
+    
+    // Check search params (for GET requests)
+    const { searchParams } = new URL(request.url);
+    const queryPin = searchParams.get("pin");
+    if (queryPin) {
+      sentPin = queryPin.trim();
+    } else {
+      // Check Authorization header (for POST requests)
+      const authHeader = request.headers.get("Authorization") || "";
+      sentPin = authHeader.replace("Bearer ", "").trim();
+    }
+
     const ADMIN_PIN = (process.env.ADMIN_PIN || "5656").trim().replace(/['"]/g, "");
 
-    if (pin !== ADMIN_PIN) {
+    if (sentPin !== ADMIN_PIN) {
       return NextResponse.json(
         { success: false, error: "Unauthorized. Invalid Admin PIN." },
         { status: 401 }
       );
     }
 
-    // 1. Delete test orders
+    // 2. Delete test orders (by address or phone prefix)
     const { data: deletedOrders, error: orderErr } = await supabase
       .from("orders")
       .delete()
-      .eq("address_details", "Apt 101, Load Test Run")
+      .or("address_details.eq.Apt 101, Load Test Run,customer_phone.like.+97156%")
       .select();
 
     if (orderErr) {
@@ -29,12 +49,11 @@ export async function POST(request) {
       );
     }
 
-    // 2. Delete test customers (those starting with +97156 and having name as null)
+    // 3. Delete test customers (those starting with +97156)
     const { data: deletedCusts, error: custErr } = await supabase
       .from("customers")
       .delete()
       .like("phone", "+97156%")
-      .is("name", null)
       .select();
 
     if (custErr) {
