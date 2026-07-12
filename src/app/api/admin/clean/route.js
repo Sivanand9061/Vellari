@@ -34,22 +34,42 @@ async function handleCleanup(request) {
       );
     }
 
-    // 2. Delete test orders (by address or phone prefix)
-    const { data: deletedOrders, error: orderErr } = await supabase
+    // 2. Delete test orders (by address)
+    const { data: deletedOrdersByAddress, error: orderErr1 } = await supabase
       .from("orders")
       .delete()
-      .or("address_details.eq.Apt 101, Load Test Run,customer_phone.like.+97156%")
+      .eq("address_details", "Apt 101, Load Test Run")
       .select();
 
-    if (orderErr) {
-      console.error("Error deleting test orders:", orderErr);
+    if (orderErr1) {
+      console.error("Error deleting test orders by address:", orderErr1);
       return NextResponse.json(
-        { success: false, error: "Database error deleting orders: " + orderErr.message },
+        { success: false, error: "Database error deleting orders by address: " + orderErr1.message },
         { status: 500 }
       );
     }
 
-    // 3. Delete test customers (those starting with +97156)
+    // 3. Delete test orders (by phone prefix)
+    const { data: deletedOrdersByPhone, error: orderErr2 } = await supabase
+      .from("orders")
+      .delete()
+      .like("customer_phone", "+97156%")
+      .select();
+
+    if (orderErr2) {
+      console.error("Error deleting test orders by phone:", orderErr2);
+      return NextResponse.json(
+        { success: false, error: "Database error deleting orders by phone: " + orderErr2.message },
+        { status: 500 }
+      );
+    }
+
+    const deletedOrders = [
+      ...(deletedOrdersByAddress || []),
+      ...(deletedOrdersByPhone || [])
+    ];
+
+    // 4. Delete test customers (those starting with +97156)
     const { data: deletedCusts, error: custErr } = await supabase
       .from("customers")
       .delete()
