@@ -650,39 +650,41 @@ export default function AdminDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 p-6 max-w-6xl w-full mx-auto flex flex-col gap-6">
         
-        {/* iOS-Style Date Preset Filter Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/2 border border-white/5 rounded-3xl p-4 md:px-6 md:py-4">
-          <div className="flex flex-col text-left">
-            <span className="text-[9px] font-black text-white/40 tracking-widest uppercase">ANALYTICS TIMEFRAME</span>
-            <span className="text-xs font-bold text-white/85 mt-0.5">
-              {new Date(startDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
-              {startDate.split("T")[0] !== endDate.split("T")[0] && (
-                <> - {new Date(endDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</>
-              )}
-            </span>
-          </div>
+        {/* iOS-Style Date Preset Filter Bar (Only shown on Overview & Orders tabs) */}
+        {(activeTab === "overview" || activeTab === "orders") && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/2 border border-white/5 rounded-3xl p-4 md:px-6 md:py-4">
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] font-black text-white/40 tracking-widest uppercase">ANALYTICS TIMEFRAME</span>
+              <span className="text-xs font-bold text-white/85 mt-0.5">
+                {new Date(startDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                {startDate.split("T")[0] !== endDate.split("T")[0] && (
+                  <> - {new Date(endDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</>
+                )}
+              </span>
+            </div>
 
-          <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 w-full sm:w-auto overflow-x-auto">
-            {[
-              { id: "today", label: "Today" },
-              { id: "yesterday", label: "Yesterday" },
-              { id: "week", label: "Last 7 Days" },
-              { id: "custom", label: "Custom Range 📅" }
-            ].map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => handlePresetChange(preset.id)}
-                className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase transition-all cursor-pointer whitespace-nowrap ${
-                  datePreset === preset.id
-                    ? "bg-[#F5B041] text-black shadow-md"
-                    : "text-white/60 hover:text-white"
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
+            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 w-full sm:w-auto overflow-x-auto">
+              {[
+                { id: "today", label: "Today" },
+                { id: "yesterday", label: "Yesterday" },
+                { id: "week", label: "Last 7 Days" },
+                { id: "custom", label: "Custom Range 📅" }
+              ].map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handlePresetChange(preset.id)}
+                  className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase transition-all cursor-pointer whitespace-nowrap ${
+                    datePreset === preset.id
+                      ? "bg-[#F5B041] text-black shadow-md"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* TAB 1: OVERVIEW & AI */}
         {activeTab === "overview" && (
