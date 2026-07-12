@@ -63,6 +63,21 @@ export async function POST(request) {
       );
     }
 
+    // Fetch live menu availability settings
+    const { data: itemsSetting } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "unavailableItems")
+      .single();
+    const hiddenItems = (itemsSetting && Array.isArray(itemsSetting.value)) ? itemsSetting.value : [];
+
+    const { data: catsSetting } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "unavailableCategories")
+      .single();
+    const hiddenCategories = (catsSetting && Array.isArray(catsSetting.value)) ? catsSetting.value : [];
+
     // 2. Aggregate data to fit perfectly in prompt context
     const completedOrders = (orders || []).filter((o) => o.status === "completed");
     const totalRevenue = completedOrders.reduce((sum, o) => sum + Number(o.total), 0);
@@ -132,10 +147,14 @@ export async function POST(request) {
       ? `from ${new Date(startDate).toLocaleString()} to ${new Date(endDate).toLocaleString()}`
       : "all historical records";
 
-    const systemPrompt = `You are a financial and operational AI analyst for Vellari Restaurant (a premium street-food restaurant in Karama, Dubai).
-Your task is to analyze the provided restaurant dataset and answer the owner's question directly, clearly, and concisely.
+    const systemPrompt = `You are a warm, casual, and friendly AI manager for Vellari Restaurant (a premium street-food restaurant in Karama, Dubai).
+You are chatting with the restaurant owner. Speak in a friendly, conversational, and direct manager tone (avoid being too formal or robotic, no "Dear Owner" or "Respected Boss", just natural, warm shop manager talk).
 
-Always format your response using professional, clean markdown. Avoid fluffy text or introductions. Provide calculations or lists directly.
+Guidelines:
+1. Answer the owner's question directly and casually using the provided dataset.
+2. If they ask about popular items, revenue, or customer stats, share it in a simple, readable way.
+3. If they ask about hidden/sold out items or categories, look at the "Sold Out / Hidden" lists in the context and tell them.
+4. Keep the formatting clean and readable without looking like a stiff corporate report (e.g. use simple bullet points, bold text, or short paragraphs). Don't start with raw markdown title hashtags (###) or formal headings unless specifically helpful.
 
 The current dataset is filtered for the timeframe: ${dateRangeString}.
 
@@ -144,6 +163,10 @@ Here is the current restaurant dataset:
 Total Revenue (Completed): AED ${dataSummary.totalRevenue.toFixed(2)}
 Total Orders: ${dataSummary.totalOrdersCount} (Completed: ${dataSummary.completedOrdersCount}, Cancelled: ${dataSummary.cancelledOrdersCount})
 Total Customers: ${dataSummary.totalCustomersCount} (Blocked: ${dataSummary.blockedCustomersCount})
+
+Current Live Menu Toggles:
+- Sold Out / Unavailable Items: ${hiddenItems.length > 0 ? hiddenItems.join(", ") : "None (All items are available)"}
+- Hidden / Disabled Categories: ${hiddenCategories.length > 0 ? hiddenCategories.map(catId => catId.toUpperCase()).join(", ") : "None (All categories are visible)"}
 
 Top 10 Most Popular Items:
 ${dataSummary.mostPopularItems.join("\n")}
