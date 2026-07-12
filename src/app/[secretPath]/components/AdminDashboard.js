@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
+import { categories, menuData } from "@/utils/menuData";
 
 export default function AdminDashboard() {
   const [pin, setPin] = useState("");
@@ -75,6 +76,10 @@ export default function AdminDashboard() {
   // Bulk selection states
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [selectedCustomerPhones, setSelectedCustomerPhones] = useState([]);
+  const [unavailableItems, setUnavailableItems] = useState([]);
+  const [unavailableCategories, setUnavailableCategories] = useState([]);
+  const [adminItemSearch, setAdminItemSearch] = useState("");
+  const [adminActiveCategory, setAdminActiveCategory] = useState("combo");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -136,6 +141,26 @@ export default function AdminDashboard() {
 
     if (radiusData) {
       setDeliveryRadius(String(radiusData.value));
+    }
+
+    // Fetch unavailable items setting
+    const { data: itemsData } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "unavailableItems")
+      .single();
+    if (itemsData && Array.isArray(itemsData.value)) {
+      setUnavailableItems(itemsData.value);
+    }
+
+    // Fetch unavailable categories setting
+    const { data: catsData } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "unavailableCategories")
+      .single();
+    if (catsData && Array.isArray(catsData.value)) {
+      setUnavailableCategories(catsData.value);
     }
   };
 
@@ -327,6 +352,40 @@ export default function AdminDashboard() {
       alert("Selected customers deleted successfully.");
       setCustomers((prev) => prev.filter((c) => !selectedCustomerPhones.includes(c.phone)));
       setSelectedCustomerPhones([]);
+    }
+  };
+
+  const handleToggleItemAvailability = async (itemName) => {
+    const updated = unavailableItems.includes(itemName)
+      ? unavailableItems.filter((name) => name !== itemName)
+      : [...unavailableItems, itemName];
+
+    setUnavailableItems(updated);
+
+    const { error } = await supabase
+      .from("settings")
+      .upsert({ key: "unavailableItems", value: updated });
+
+    if (error) {
+      console.error("Error updating unavailable items setting:", error);
+      alert("Failed to save changes: " + error.message);
+    }
+  };
+
+  const handleToggleCategoryAvailability = async (categoryId) => {
+    const updated = unavailableCategories.includes(categoryId)
+      ? unavailableCategories.filter((id) => id !== categoryId)
+      : [...unavailableCategories, categoryId];
+
+    setUnavailableCategories(updated);
+
+    const { error } = await supabase
+      .from("settings")
+      .upsert({ key: "unavailableCategories", value: updated });
+
+    if (error) {
+      console.error("Error updating unavailable categories setting:", error);
+      alert("Failed to save changes: " + error.message);
     }
   };
 
@@ -570,7 +629,8 @@ export default function AdminDashboard() {
           {[
             { id: "overview", label: "Overview & AI" },
             { id: "orders", label: "Order Logs" },
-            { id: "customers", label: "Customers" }
+            { id: "customers", label: "Customers" },
+            { id: "menu", label: "Menu Toggle" }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -957,6 +1017,173 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* TAB 4: MENU ITEMS & CATEGORY AVAILABILITY */}
+        {activeTab === "menu" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start text-left">
+            
+            {/* Category Toggles Panel (left, 5 cols) */}
+            <div className="lg:col-span-5 bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-6">
+              <div className="flex items-center gap-2 border-b border-white/5 pb-4">
+                <span className="material-symbols-outlined text-[#F5B041] text-xl">category</span>
+                <h3 className="text-xs font-black tracking-widest uppercase">Category Availability</h3>
+              </div>
+              
+              <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
+                {categories.map((cat) => {
+                  const isHidden = unavailableCategories.includes(cat.id);
+                  return (
+                    <div 
+                      key={cat.id} 
+                      className={`flex justify-between items-center bg-white/5 border border-white/5 rounded-2xl px-4 py-3.5 transition-all ${
+                        isHidden ? "opacity-60 border-red-500/10" : ""
+                      }`}
+                    >
+                      <div className="flex flex-col text-left">
+                        <span className="text-xs font-bold text-white/90">{cat.name}</span>
+                        <span className={`text-[8px] font-black uppercase mt-1 tracking-wider ${
+                          isHidden ? "text-red-400" : "text-[#006B2B]"
+                        }`}>
+                          {isHidden ? "Hidden from Menu" : "Visible"}
+                        </span>
+                      </div>
+                      
+                      <button
+                        onClick={() => handleToggleCategoryAvailability(cat.id)}
+                        className={`relative w-11 h-6 rounded-full transition-all duration-300 focus:outline-none cursor-pointer ${
+                          !isHidden ? "bg-[#006B2B]" : "bg-white/10"
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${
+                            !isHidden ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        ></div>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Item Toggles Panel (right, 7 cols) */}
+            <div className="lg:col-span-7 bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#F5B041] text-xl">restaurant_menu</span>
+                  <h3 className="text-xs font-black tracking-widest uppercase">Menu Items Toggle</h3>
+                </div>
+                
+                {/* Item Search Bar */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search menu item..."
+                    onChange={(e) => setAdminItemSearch(e.target.value)}
+                    value={adminItemSearch}
+                    className="bg-white/5 border border-white/5 focus:border-[#F5B041] focus:outline-none rounded-xl pl-8 pr-4 py-1.5 text-xs text-white placeholder-white/30 w-full sm:w-48"
+                  />
+                  <span className="material-symbols-outlined absolute left-2.5 top-1.5 text-white/30 text-base">search</span>
+                </div>
+              </div>
+
+              {/* Category Filter for items list (only if not searching) */}
+              {!adminItemSearch && (
+                <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setAdminActiveCategory(cat.id)}
+                      className={`px-3 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all duration-200 border whitespace-nowrap ${
+                        adminActiveCategory === cat.id
+                          ? "bg-[#F5B041] border-[#F5B041] text-black shadow-md"
+                          : "bg-transparent border-white/10 text-white/60 hover:bg-white/5"
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Items List */}
+              <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
+                {(() => {
+                  let itemsToRender = [];
+                  if (adminItemSearch) {
+                    const searchLower = adminItemSearch.toLowerCase();
+                    Object.keys(menuData).forEach((catId) => {
+                      menuData[catId].forEach((item) => {
+                        if (item.name.toLowerCase().includes(searchLower)) {
+                          itemsToRender.push({ ...item, categoryId: catId });
+                        }
+                      });
+                    });
+                  } else {
+                    itemsToRender = (menuData[adminActiveCategory] || []).map(item => ({
+                      ...item,
+                      categoryId: adminActiveCategory
+                    }));
+                  }
+
+                  if (itemsToRender.length === 0) {
+                    return (
+                      <div className="p-8 text-center text-white/30 font-medium text-xs">
+                        No items matched your criteria.
+                      </div>
+                    );
+                  }
+
+                  return itemsToRender.map((item, idx) => {
+                    const isSoldOut = unavailableItems.includes(item.name);
+                    const isCatHidden = unavailableCategories.includes(item.categoryId);
+                    return (
+                      <div
+                        key={`${item.name}-${idx}`}
+                        className={`flex justify-between items-center bg-white/5 border border-white/5 rounded-2xl px-4 py-3 transition-all ${
+                          isSoldOut ? "opacity-60 border-red-500/10" : ""
+                        }`}
+                      >
+                        <div className="flex flex-col text-left">
+                          <span className="text-xs font-bold text-white/90">{item.name}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[8px] font-black text-[#F5B041] tracking-wider uppercase">
+                              {item.price}
+                            </span>
+                            <span className="text-white/20 text-[8px]">•</span>
+                            <span className="text-[8px] font-medium text-white/40 uppercase tracking-widest">
+                              {categories.find(c => c.id === item.categoryId)?.name}
+                            </span>
+                            {isCatHidden && (
+                              <>
+                                <span className="text-white/20 text-[8px]">•</span>
+                                <span className="text-[8px] font-black text-red-400 uppercase tracking-wider">
+                                  Category Hidden
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleToggleItemAvailability(item.name)}
+                          className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all cursor-pointer ${
+                            isSoldOut
+                              ? "bg-red-500 hover:bg-red-600 text-white"
+                              : "bg-[#006B2B]/10 hover:bg-[#006B2B]/20 text-[#006B2B] border border-[#006B2B]/20"
+                          }`}
+                        >
+                          {isSoldOut ? "Mark Available" : "Mark Sold Out"}
+                        </button>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
           </div>
         )}
       </main>
