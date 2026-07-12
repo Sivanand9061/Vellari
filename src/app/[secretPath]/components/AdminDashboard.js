@@ -712,7 +712,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Chat Messages */}
-              <div className="h-64 overflow-y-auto bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+              <div className="h-64 overflow-y-auto bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col gap-3 scrollbar-none">
                 {aiChatHistory.map((msg, idx) => (
                   <div
                     key={idx}
@@ -1031,7 +1031,7 @@ export default function AdminDashboard() {
                 <h3 className="text-xs font-black tracking-widest uppercase">Category Availability</h3>
               </div>
               
-              <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
+              <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1 scrollbar-none">
                 {categories.map((cat) => {
                   const isHidden = unavailableCategories.includes(cat.id);
                   return (
@@ -1109,7 +1109,7 @@ export default function AdminDashboard() {
               )}
 
               {/* Items List */}
-              <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
+              <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1 scrollbar-none">
                 {(() => {
                   let itemsToRender = [];
                   if (adminItemSearch) {
