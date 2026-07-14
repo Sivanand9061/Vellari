@@ -250,24 +250,24 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative min-h-screen pt-28 pb-16 px-5 md:px-14 flex flex-col items-center justify-center gap-8 bg-[#fffcf2] overflow-hidden">
+        <section className="relative h-[calc(100vh-80px)] min-h-[500px] max-h-[850px] pt-4 pb-6 px-5 md:px-14 flex flex-col items-center justify-center gap-3 md:gap-5 bg-[#fffcf2] overflow-hidden">
           {/* Eyebrow */}
           <div
-            className="relative z-10 flex items-center gap-3 text-[#156734]/60 text-xs font-bold tracking-[0.18em] uppercase"
+            className="relative z-10 flex items-center gap-2 text-[#156734]/60 text-[10px] md:text-xs font-bold tracking-[0.18em] uppercase"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            <span className="w-8 h-px bg-[#156734]/30" />
+            <span className="w-6 h-px bg-[#156734]/30" />
             KL 10 RESTAURANT
-            <span className="w-8 h-px bg-[#156734]/30" />
+            <span className="w-6 h-px bg-[#156734]/30" />
           </div>
 
           {/* Heading */}
           <div className="relative z-10 text-center max-w-3xl flex flex-col items-center">
             <h1
-              className="text-[#156734] font-black leading-[1.08] tracking-tight mb-2"
+              className="text-[#156734] font-black leading-[1.1] tracking-tight mb-1"
               style={{
                 fontFamily: "Montserrat, sans-serif",
-                fontSize: "clamp(2.4rem, 7.5vw, 5.2rem)",
+                fontSize: "clamp(2rem, 6.5vw, 4.2rem)",
               }}
             >
               Authentic Kerala<br />
@@ -278,14 +278,14 @@ export default function Home() {
             <img
               src="/logo_malayalam.png"
               alt="വെള്ളരി"
-              className="h-16 md:h-20 w-auto object-contain mt-2 opacity-90"
+              className="h-10 md:h-14 w-auto object-contain mt-1 opacity-90"
               style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
             />
           </div>
 
           {/* Carousel */}
           <div
-            className="relative z-10 w-full max-w-lg flex items-center justify-center aspect-square md:max-w-xl"
+            className="relative z-10 w-full max-w-[220px] md:max-w-[340px] flex items-center justify-center aspect-square"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
@@ -294,11 +294,11 @@ export default function Home() {
                 key={slide.alt}
                 src={slide.img}
                 alt={slide.alt}
-                className="absolute w-[80%] md:w-[75%] select-none pointer-events-none transition-all duration-700"
+                className="absolute w-[95%] select-none pointer-events-none transition-all duration-700"
                 style={{
-                  filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.15))",
+                  filter: "drop-shadow(0 16px 32px rgba(0,0,0,0.12))",
                   opacity: i === currentSlide ? 1 : 0,
-                  transform: i === currentSlide ? "scale(1) translateX(0)" : "scale(0.95) translateX(25px)",
+                  transform: i === currentSlide ? "scale(1) translateX(0)" : "scale(0.95) translateX(20px)",
                 }}
               />
             ))}
@@ -307,14 +307,14 @@ export default function Home() {
               src={HERO_SLIDES[0].img}
               alt=""
               aria-hidden
-              className="w-[80%] md:w-[75%] invisible"
+              className="w-[95%] invisible"
             />
           </div>
 
           {/* CTA */}
           <Link
             href="/menu"
-            className="relative z-10 inline-flex items-center gap-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white font-bold px-10 py-4.5 rounded-[20px] transition-all text-base shadow-[0_6px_20px_rgba(21,103,52,0.3)] hover:scale-103 active:scale-97 cursor-pointer"
+            className="relative z-10 inline-flex items-center gap-2 bg-[#156734] hover:bg-[#0f4d27] text-white font-bold px-8 py-3.5 rounded-[16px] transition-all text-sm shadow-[0_6px_20px_rgba(21,103,52,0.25)] hover:scale-102 active:scale-98 cursor-pointer"
             style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.03em" }}
           >
             EXPLORE MENU
@@ -325,7 +325,7 @@ export default function Home() {
         {/* Chef's Specials Section */}
         <section
           id="specials"
-          className="py-24 px-5 md:px-14 bg-[#fffcf2] border-t border-[#e5dbb2]/30"
+          className="py-14 md:py-20 px-5 md:px-14 bg-[#fffcf2] border-t border-[#e5dbb2]/30"
         >
           <div className="max-w-4xl mx-auto">
             {/* Section Header */}
@@ -393,7 +393,7 @@ export default function Home() {
         </section>
 
         {/* The Making Section */}
-        <section id="making" className="py-24 px-5 md:px-14 bg-[#fef8e0] border-t border-[#e5dbb2]/30">
+        <section id="making" className="py-14 md:py-20 px-5 md:px-14 bg-[#fef8e0] border-t border-[#e5dbb2]/30">
           <div className="max-w-4xl mx-auto">
             {/* Section Header */}
             <div className="mb-12 text-left">
@@ -458,7 +458,7 @@ export default function Home() {
         </section>
 
         {/* Call to Order / Table Reservation Banner */}
-        <section className="py-24 px-5 md:px-14 bg-[#156734]">
+        <section className="py-14 md:py-20 px-5 md:px-14 bg-[#156734]">
           <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-8">
             <p
               className="text-white/50 text-xs font-bold tracking-[0.18em] uppercase"
@@ -506,7 +506,7 @@ export default function Home() {
         </section>
 
         {/* Contact details section */}
-        <section id="contact" className="py-24 px-5 md:px-14 bg-[#fffcf2]">
+        <section id="contact" className="py-14 md:py-20 px-5 md:px-14 bg-[#fffcf2]">
           <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between gap-12 text-left">
             {/* Address */}
             <div className="flex-1">
