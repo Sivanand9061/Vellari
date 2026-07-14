@@ -600,28 +600,57 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        {/* Delivery Radius Selector */}
-        <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-5 py-2">
-          <div className="flex flex-col text-left">
-            <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">DELIVERY LIMIT</span>
-            <span className="text-[11px] font-bold text-white/95 mt-0.5">
-              {deliveryRadius === "unlimited" || deliveryRadius === "0" ? "Unlimited" : `${deliveryRadius} km`}
-            </span>
+        {/* Delivery Radius Selector (Toggle + Slider: 100m to 5km) */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5 bg-white/2 border border-white/5 rounded-2xl px-5 py-2.5">
+          <div className="flex justify-between items-center gap-4 w-full sm:w-auto">
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">DELIVERY LIMIT</span>
+              <span className="text-[11px] font-bold text-white/95 mt-0.5 whitespace-nowrap">
+                {deliveryRadius === "unlimited" || deliveryRadius === "0" 
+                  ? "Unlimited" 
+                  : (parseFloat(deliveryRadius) < 1 
+                      ? `${Math.round(parseFloat(deliveryRadius) * 1000)} meters` 
+                      : `${parseFloat(deliveryRadius).toFixed(1)} km`)}
+              </span>
+            </div>
+            
+            {/* Toggle Switch to Enable/Disable Limit */}
+            <button
+              onClick={() => {
+                if (deliveryRadius === "unlimited" || deliveryRadius === "0") {
+                  handleRadiusChange("3.0");
+                } else {
+                  handleRadiusChange("unlimited");
+                }
+              }}
+              className={`w-9 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                deliveryRadius !== "unlimited" && deliveryRadius !== "0" ? "bg-[#F5B041]" : "bg-white/10"
+              }`}
+            >
+              <div
+                className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ${
+                  deliveryRadius !== "unlimited" && deliveryRadius !== "0" ? "translate-x-4" : "translate-x-0"
+                }`}
+              ></div>
+            </button>
           </div>
-          <select
-            value={deliveryRadius}
-            onChange={(e) => handleRadiusChange(e.target.value)}
-            className="bg-[#111111] border border-white/10 focus:outline-none rounded-xl px-2.5 py-1.5 text-xs text-white cursor-pointer font-bold"
-          >
-            <option value="unlimited">Unlimited</option>
-            <option value="3">3 km</option>
-            <option value="5">5 km</option>
-            <option value="8">8 km</option>
-            <option value="10">10 km</option>
-            <option value="15">15 km</option>
-            <option value="20">20 km</option>
-            <option value="30">30 km</option>
-          </select>
+
+          {/* Range Slider (Shown only when limit is enabled) */}
+          {deliveryRadius !== "unlimited" && deliveryRadius !== "0" && (
+            <div className="flex items-center gap-3 w-full sm:w-44">
+              <span className="text-[9px] font-bold text-white/30">100m</span>
+              <input
+                type="range"
+                min="0.1"
+                max="5.0"
+                step="0.1"
+                value={parseFloat(deliveryRadius) || 3.0}
+                onChange={(e) => handleRadiusChange(e.target.value)}
+                className="flex-1 accent-[#F5B041] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="text-[9px] font-bold text-white/30">5km</span>
+            </div>
+          )}
         </div>
 
         {/* Tab Controls */}

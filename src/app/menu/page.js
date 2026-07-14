@@ -714,7 +714,9 @@ export default function MenuPage() {
                             const maxRadius = parseFloat(deliveryRadius);
 
                             if (!isNaN(maxRadius) && distance > maxRadius) {
-                              alert(`Sorry, your location is ${distance.toFixed(1)} km away. Our delivery limit is ${maxRadius} km.`);
+                              const limitDisplay = maxRadius < 1 ? `${Math.round(maxRadius * 1000)} meters` : `${maxRadius.toFixed(1)} km`;
+                              const distanceDisplay = distance < 1 ? `${Math.round(distance * 1000)} meters` : `${distance.toFixed(1)} km`;
+                              alert(`Sorry, your location is ${distanceDisplay} away. Our delivery limit is ${limitDisplay}.`);
                               return;
                             }
                           }

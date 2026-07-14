@@ -87,10 +87,12 @@ export async function POST(request) {
               const distanceKm = R * c;
 
               if (distanceKm > maxRadius) {
+                const limitDisplay = maxRadius < 1 ? `${Math.round(maxRadius * 1000)} meters` : `${maxRadius.toFixed(1)} km`;
+                const distanceDisplay = distanceKm < 1 ? `${Math.round(distanceKm * 1000)} meters` : `${distanceKm.toFixed(1)} km`;
                 return NextResponse.json(
                   { 
                     success: false, 
-                    error: `Out of delivery zone. Distance is ${distanceKm.toFixed(1)} km, but our delivery limit is ${maxRadius} km.` 
+                    error: `Out of delivery zone. Distance is ${distanceDisplay}, but our delivery limit is ${limitDisplay}.` 
                   },
                   { status: 400 }
                 );
