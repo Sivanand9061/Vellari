@@ -269,7 +269,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative h-[calc(100vh-80px)] min-h-[500px] max-h-[850px] pt-4 pb-6 px-5 md:px-14 flex flex-col items-center justify-center gap-3 md:gap-5 bg-[#fffcf2] overflow-hidden">
+        <section className="relative h-[82vh] min-h-[480px] max-h-[800px] pt-4 pb-6 px-5 md:px-14 flex flex-col items-center justify-center gap-3 md:gap-5 bg-[#fffcf2] overflow-hidden">
           {/* Eyebrow */}
           <div
             className="relative z-10 flex items-center gap-2 text-[#156734]/60 text-[10px] md:text-xs font-bold tracking-[0.18em] uppercase"
@@ -344,7 +344,7 @@ export default function Home() {
         {/* Chef's Specials Section */}
         <section
           id="specials"
-          className="py-14 md:py-20 px-5 md:px-14 bg-[#fffcf2] border-t border-[#e5dbb2]/30"
+          className="pt-8 pb-14 md:pt-12 md:pb-20 px-5 md:px-14 bg-[#fffcf2] border-t border-[#e5dbb2]/30"
         >
           <div className="max-w-4xl mx-auto">
             {/* Section Header */}
