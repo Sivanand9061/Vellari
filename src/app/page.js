@@ -1,12 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase";
 
 export default function Home() {
   const [isMaintenance, setIsMaintenance] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeOrderId, setActiveOrderId] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const touchStartX = useRef(null);
 
+  const HERO_SLIDES = [
+    { img: "/img/biryani.png", alt: "Chicken Dum Biryani" },
+    { img: "/img/poratta.png", alt: "London Poratta Special" },
+    { img: "/img/noodles.png", alt: "Prawns Noodles" },
+  ];
+
+  const specials = [
+    { name: "Chicken Stew", price: "17.00", tag: "Kerala Special", image: "/img/chicken_stew.png" },
+    { name: "Chicken Pothichoru", price: "14.00", tag: "Banana Leaf Feast", image: "/img/chicken_pothichoru.png" },
+    { name: "Chicken Fry Dum Biriyani", price: "19.00", tag: "Karama Best", image: "/img/biryani.png" },
+  ];
+
+  const makingVideos = [
+    {
+      title: "Flaky Malabar Parotta",
+      thumbnail: "/img/making_parotta.png",
+      embedUrl: "https://www.youtube.com/embed/v24g7c3s_Xk"
+    },
+    {
+      title: "Meter Chai Stretching",
+      thumbnail: "/img/making_chai.png",
+      embedUrl: "https://www.youtube.com/embed/5U9N1wF35bU"
+    }
+  ];
+
+  // Maintenance Check
   useEffect(() => {
     fetch("/api/maintenance")
       .then((res) => res.json())
@@ -18,8 +50,7 @@ export default function Home() {
       .catch((err) => console.error("Maintenance check error:", err));
   }, []);
 
-  const [scrolled, setScrolled] = useState(false);
-
+  // Header Scroll handler
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
@@ -32,10 +63,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const [activeOrderId, setActiveOrderId] = useState(null);
-  const [selectedVideo, setSelectedVideo] = useState(null);
-
-  // Check for active order on mount and subscribe in real-time
+  // Active order recovery
   useEffect(() => {
     const checkActiveOrder = async () => {
       const savedId = localStorage.getItem("vellari_active_order_id");
@@ -86,134 +114,277 @@ export default function Home() {
     };
   }, []);
 
-  const specials = [
-    {
-      name: "Chicken Stew",
-      price: 17.00,
-      image: "/img/chicken_stew.png"
-    },
-    {
-      name: "Chicken Pothichoru",
-      price: 14.00,
-      image: "/img/chicken_pothichoru.png"
-    }
-  ];
+  // Slide Timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((c) => (c + 1) % HERO_SLIDES.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const makingVideos = [
-    {
-      title: "Flaky Malabar Parotta",
-      thumbnail: "/img/making_parotta.png",
-      embedUrl: "https://www.youtube.com/embed/v24g7c3s_Xk"
-    },
-    {
-      title: "Meter Chai Stretching",
-      thumbnail: "/img/making_chai.png",
-      embedUrl: "https://www.youtube.com/embed/5U9N1wF35bU"
+  const onTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) {
+      setCurrentSlide((c) =>
+        delta < 0
+          ? (c + 1) % HERO_SLIDES.length
+          : (c - 1 + HERO_SLIDES.length) % HERO_SLIDES.length
+      );
     }
-  ];
+    touchStartX.current = null;
+  };
 
   if (isMaintenance) {
     return <MaintenancePage />;
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF8F2]">
-      {/* Header */}
+    <div className="flex flex-col min-h-screen bg-[#fffcf2]">
+      {/* Header / Navbar */}
       <header
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 px-6 py-5 md:px-14 flex items-center justify-between transition-all duration-300 ${
           scrolled
-            ? "bg-[#111111]/95 backdrop-blur-md shadow-md border-b border-brandGreen/25"
-            : "bg-transparent border-b border-transparent"
+            ? "bg-[#fffcf2]/95 backdrop-blur-sm shadow-md border-b border-[#e5dbb2]/30"
+            : "bg-transparent"
         }`}
       >
-        <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
-          {/* English Logo on the Left */}
-          <div
-            className="flex items-center cursor-pointer transition-transform duration-300 hover:scale-102"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        {/* Brand Logo */}
+        <div
+          className="flex items-center gap-1.5 cursor-pointer"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <span
+            className="text-[#156734] font-black text-2xl tracking-tight uppercase"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            <img
-              src="/logo_english.png"
-              alt="Vellari Karama Dubai"
-              className={`h-10 md:h-12 w-auto object-contain transition-all duration-300 ${
-                scrolled ? "mix-blend-screen brightness-100" : ""
-              }`}
-              style={!scrolled ? { filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" } : {}}
-            />
-          </div>
+            Vellari
+          </span>
+        </div>
 
-          {/* Contact Link on the Right */}
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          <Link
+            href="/menu"
+            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            MENU
+          </Link>
+          <a
+            href="#specials"
+            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            SPECIALS
+          </a>
+          <a
+            href="#making"
+            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            THE MAKING
+          </a>
           <a
             href="#contact"
-            className={`inline-flex items-center text-sm font-black transition-colors duration-300 ${
-              scrolled ? "text-white/90 hover:text-brandGold" : "text-brandGreen hover:text-brandGreenDark"
-            }`}
+            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            CONTACT US
+            CONTACT
           </a>
-        </div>
+        </nav>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-[#156734] focus:outline-none cursor-pointer"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <span className="material-symbols-outlined text-[26px]">
+            {mobileMenuOpen ? "close" : "menu"}
+          </span>
+        </button>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-[#fffcf2] border-t border-[#e5dbb2] px-6 py-6 flex flex-col gap-5 md:hidden shadow-md animate-fade-in">
+            <Link
+              href="/menu"
+              className="text-[#156734] font-bold text-base text-left"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              MENU
+            </Link>
+            <a
+              href="#specials"
+              className="text-[#156734] font-bold text-base text-left"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              SPECIALS
+            </a>
+            <a
+              href="#making"
+              className="text-[#156734] font-bold text-base text-left"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              THE MAKING
+            </a>
+            <a
+              href="#contact"
+              className="text-[#156734] font-bold text-base text-left"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              CONTACT
+            </a>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
       <main className="flex-1">
-        {/* Landing Hero Section (Rounded Card: Cream bg, Malayalam logo) */}
-        <section className="relative w-full pt-28 pb-16 bg-[#EBE5CE] rounded-b-[48px] shadow-sm flex flex-col items-center justify-center overflow-hidden">
-          {/* Subtle background overlay */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.15)_0%,rgba(0,0,0,0)_80%)] pointer-events-none"></div>
-
-          {/* Content */}
-          <div className="relative z-10 text-center px-6 max-w-3xl mx-auto flex flex-col items-center">
-            {/* Parent Brand & Malayalam Logo */}
-            <div className="animate-fade-in-up flex flex-col items-center mb-6">
-              <span className="text-[10px] md:text-[11px] font-black tracking-[0.3em] text-brandGreen uppercase mb-3.5 leading-none">
-                KL 10 RESTAURANT
-              </span>
-              <img
-                src="/logo_malayalam.png"
-                alt="വെള്ളരി"
-                className="h-28 md:h-36 w-auto object-contain transition-all duration-300"
-                style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
-              />
-            </div>
+        {/* Hero Section */}
+        <section className="relative min-h-screen pt-28 pb-16 px-5 md:px-14 flex flex-col items-center justify-center gap-8 bg-[#fffcf2] overflow-hidden">
+          {/* Eyebrow */}
+          <div
+            className="relative z-10 flex items-center gap-3 text-[#156734]/60 text-xs font-bold tracking-[0.18em] uppercase"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            <span className="w-8 h-px bg-[#156734]/30" />
+            KL 10 RESTAURANT
+            <span className="w-8 h-px bg-[#156734]/30" />
           </div>
-        </section>
 
-        {/* Explore Menu Button (Placed just below the card with some margin) */}
-        <div className="flex justify-center -mt-6 relative z-20 animate-fade-in-up">
+          {/* Heading */}
+          <div className="relative z-10 text-center max-w-3xl flex flex-col items-center">
+            <h1
+              className="text-[#156734] font-black leading-[1.08] tracking-tight mb-2"
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "clamp(2.4rem, 7.5vw, 5.2rem)",
+              }}
+            >
+              Authentic Kerala<br />
+              <span className="text-[#156734]/35">Street Eats</span>
+            </h1>
+            
+            {/* Malayalam Subtitle Logo */}
+            <img
+              src="/logo_malayalam.png"
+              alt="വെള്ളരി"
+              className="h-16 md:h-20 w-auto object-contain mt-2 opacity-90"
+              style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
+            />
+          </div>
+
+          {/* Carousel */}
+          <div
+            className="relative z-10 w-full max-w-lg flex items-center justify-center aspect-square md:max-w-xl"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
+            {HERO_SLIDES.map((slide, i) => (
+              <img
+                key={slide.alt}
+                src={slide.img}
+                alt={slide.alt}
+                className="absolute w-[80%] md:w-[75%] select-none pointer-events-none transition-all duration-700"
+                style={{
+                  filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.15))",
+                  opacity: i === currentSlide ? 1 : 0,
+                  transform: i === currentSlide ? "scale(1) translateX(0)" : "scale(0.95) translateX(25px)",
+                }}
+              />
+            ))}
+            {/* Invisible spacer to hold height */}
+            <img
+              src={HERO_SLIDES[0].img}
+              alt=""
+              aria-hidden
+              className="w-[80%] md:w-[75%] invisible"
+            />
+          </div>
+
+          {/* CTA */}
           <Link
             href="/menu"
-            className="inline-flex items-center gap-2.5 px-8 py-4.5 bg-[#006B2B] hover:bg-[#004D1F] text-white text-sm font-black tracking-widest uppercase rounded-full shadow-[0_8px_24px_rgba(0,107,43,0.3)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-float"
+            className="relative z-10 inline-flex items-center gap-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white font-bold px-10 py-4.5 rounded-[20px] transition-all text-base shadow-[0_6px_20px_rgba(21,103,52,0.3)] hover:scale-103 active:scale-97 cursor-pointer"
+            style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.03em" }}
           >
-            <span className="material-symbols-outlined text-[18px]">menu_book</span>
             EXPLORE MENU
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
           </Link>
-        </div>
+        </section>
 
-        {/* Leave some space and present Chef's Special */}
-        <section className="pt-16 pb-8 px-6 bg-[#FAF8F2]">
+        {/* Chef's Specials Section */}
+        <section
+          id="specials"
+          className="py-24 px-5 md:px-14 bg-[#fffcf2] border-t border-[#e5dbb2]/30"
+        >
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-8 flex flex-col items-center">
-              <h2 className="text-xl font-black text-brandGreen tracking-widest uppercase mb-1">Chef's Special</h2>
-              <div className="w-10 h-0.5 bg-brandGold rounded-full"></div>
+            {/* Section Header */}
+            <div className="mb-12 text-left">
+              <p
+                className="text-[#156734]/50 text-xs font-bold tracking-[0.18em] uppercase mb-3"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                Handpicked by our head chef
+              </p>
+              <h2
+                className="text-[#156734] font-black leading-tight tracking-tight uppercase"
+                style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)" }}
+              >
+                Chef&apos;s Special
+              </h2>
             </div>
 
-            {/* Specials horizontal list */}
-            <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-none -mx-6 px-6">
-              {specials.map((item, idx) => (
-                <div 
-                  key={idx} 
-                  className="flex-shrink-0 w-64 bg-[#EBE5CE] rounded-[32px] p-4 shadow-sm border border-brandGreen/5 hover:scale-[1.01] transition-transform duration-300"
+            {/* List Layout matching Premium Figma */}
+            <div className="flex flex-col gap-5">
+              {specials.map((dish) => (
+                <div
+                  key={dish.name}
+                  className="group flex items-center gap-5 rounded-[24px] overflow-hidden bg-[#fffcf2] shadow-[0px_4px_16px_rgba(21,103,52,0.06)] border border-[#e5dbb2]/20 hover:shadow-[0px_8px_24px_rgba(21,103,52,0.12)] hover:border-[#156734]/20 transition-all duration-300 p-4 text-left"
                 >
-                  <div className="relative w-full h-44 rounded-[24px] overflow-hidden mb-4 bg-white/20">
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover"
+                  {/* Image with background fallback */}
+                  <div
+                    className="shrink-0 rounded-[16px] overflow-hidden bg-[#e5dbb2]/40 relative"
+                    style={{ width: 90, height: 90 }}
+                  >
+                    <img
+                      src={dish.image}
+                      alt={dish.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-sm font-black text-brandGreen">{item.price.toFixed(2)}</span>
-                    <span className="text-[11px] font-black text-brandGreenDark/90 tracking-wide uppercase">{item.name}</span>
+
+                  {/* Info */}
+                  <div className="flex flex-1 items-center justify-between min-w-0 pr-2">
+                    <div className="min-w-0">
+                      <span
+                        className="text-[#156734]/50 text-[9px] font-bold uppercase tracking-widest block mb-1"
+                        style={{ fontFamily: "Montserrat, sans-serif" }}
+                      >
+                        {dish.tag}
+                      </span>
+                      <p
+                        className="text-[#156734] font-bold text-sm md:text-base tracking-tight truncate uppercase"
+                        style={{ fontFamily: "Montserrat, sans-serif" }}
+                      >
+                        {dish.name}
+                      </p>
+                    </div>
+                    <p
+                      className="text-[#156734] font-black text-base md:text-lg tracking-tight shrink-0 ml-4"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      AED {dish.price}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -222,141 +393,244 @@ export default function Home() {
         </section>
 
         {/* The Making Section */}
-        <section className="py-10 px-6 bg-[#FAF8F2]">
+        <section id="making" className="py-24 px-5 md:px-14 bg-[#fef8e0] border-t border-[#e5dbb2]/30">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-8 flex flex-col items-center">
-              <h2 className="text-xl font-black text-brandGreen tracking-widest uppercase mb-1">The Making</h2>
-              <div className="w-10 h-0.5 bg-brandGold rounded-full"></div>
+            {/* Section Header */}
+            <div className="mb-12 text-left">
+              <p
+                className="text-[#156734]/50 text-xs font-bold tracking-[0.18em] uppercase mb-3"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                A peek behind the curtain
+              </p>
+              <h2
+                className="text-[#156734] font-black leading-tight tracking-tight uppercase"
+                style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)" }}
+              >
+                The Making
+              </h2>
             </div>
 
-            {/* Videos horizontal list */}
-            <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-none -mx-6 px-6">
-              {makingVideos.map((video, idx) => (
-                <div 
-                  key={idx} 
+            {/* Cards Horizontal scroll */}
+            <div className="flex gap-5 overflow-x-auto pb-4 -mx-5 px-5 md:-mx-14 md:px-14 scrollbar-none">
+              {makingVideos.map((video) => (
+                <div
+                  key={video.title}
                   onClick={() => setSelectedVideo(video.embedUrl)}
-                  className="flex-shrink-0 w-64 cursor-pointer group"
+                  className="relative group shrink-0 rounded-[28px] overflow-hidden shadow-[2px_4px_16px_rgba(0,0,0,0.08)] hover:shadow-[2px_6px_24px_rgba(0,0,0,0.15)] transition-all duration-300 cursor-pointer"
+                  style={{ width: 180, height: 290 }}
                 >
-                  <div className="relative w-full h-40 rounded-[28px] overflow-hidden shadow-md bg-white/20">
-                    <img 
-                      src={video.thumbnail} 
-                      alt={video.title} 
-                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                    />
-                    {/* Play Button Overlay */}
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center transition-colors group-hover:bg-black/35 duration-300">
-                      <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        <span className="material-symbols-outlined text-brandGreen text-2xl ml-0.5">play_arrow</span>
-                      </div>
+                  {/* Thumbnail Image */}
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                  />
+                  {/* Dark transparent mask overlay */}
+                  <div className="absolute inset-0 bg-[#156734]/15 group-hover:bg-[#156734]/25 transition-colors duration-300" />
+
+                  {/* Play badge */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-white/90 shadow-md flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <span className="material-symbols-outlined text-[#156734] text-2xl ml-0.5">play_arrow</span>
                     </div>
+                    <span
+                      className="text-white text-[9px] font-bold tracking-widest uppercase"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      Watch Video
+                    </span>
                   </div>
-                  <span className="block mt-3 px-1 text-[11px] font-black text-brandGreenDark/90 tracking-wider uppercase text-left">
-                    {video.title}
-                  </span>
+
+                  {/* Label */}
+                  <div className="absolute bottom-0 left-0 right-0 px-5 py-5 bg-gradient-to-t from-black/60 to-transparent">
+                    <p
+                      className="text-white font-bold text-xs tracking-wide uppercase text-left"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {video.title}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section id="contact" className="py-16 bg-[#FAF8F2]">
-          <div className="max-w-4xl mx-auto px-6">
-            <div className="text-center mb-12 flex flex-col items-center">
-              <h2 className="text-xl font-black text-brandGreen tracking-widest uppercase mb-1">JOIN THE VIBE</h2>
-              <div className="w-10 h-0.5 bg-brandGold rounded-full"></div>
+        {/* Call to Order / Table Reservation Banner */}
+        <section className="py-24 px-5 md:px-14 bg-[#156734]">
+          <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-8">
+            <p
+              className="text-white/50 text-xs font-bold tracking-[0.18em] uppercase"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              DINE WITH US OR ORDER TAKEAWAY
+            </p>
+            <h2
+              className="text-white font-black leading-tight tracking-tight uppercase"
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "clamp(2rem, 5vw, 3.2rem)",
+              }}
+            >
+              Experience Vellari<br />At Karama Today
+            </h2>
+            <p
+              className="text-white/70 text-sm max-w-md leading-relaxed font-medium"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Enjoy high-energy Kerala street eats. Dine-in, pickup at the counter, or order delivery straight to your door!
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <a
+                href="tel:+97148342856"
+                className="inline-flex items-center gap-2 bg-[#fffcf2] text-[#156734] font-bold px-8 py-4 rounded-[20px] hover:bg-white transition-all text-sm shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-102 active:scale-98"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <span className="material-symbols-outlined text-[16px]">call</span>
+                CALL TO ORDER
+              </a>
+              <a
+                href="https://api.whatsapp.com/send?phone=971568867131"
+                className="inline-flex items-center gap-2 bg-[#25D366] text-white font-bold px-8 py-4 rounded-[20px] hover:bg-[#20ba59] transition-all text-sm shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-102 active:scale-98"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
+                </svg>
+                WHATSAPP CHAT
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact details section */}
+        <section id="contact" className="py-24 px-5 md:px-14 bg-[#fffcf2]">
+          <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between gap-12 text-left">
+            {/* Address */}
+            <div className="flex-1">
+              <h3
+                className="text-[#156734] font-bold text-xs tracking-[0.15em] uppercase mb-4"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                Visit Us
+              </h3>
+              <p
+                className="text-[#156734]/70 text-sm leading-relaxed font-semibold flex flex-col gap-1"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <span>Near Nesto Hypermarket</span>
+                <span>Al Karama, Dubai - UAE</span>
+                <span className="mt-3 font-black text-[#156734]">Open Daily: 7:00 AM – 11:00 PM</span>
+              </p>
             </div>
 
-            {/* Contact Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              {/* Location Card */}
-              <div className="bg-[#EBE5CE] p-8 rounded-[32px] shadow-sm border border-brandGreen/5 hover:border-brandGreen/20 transition-all duration-300 flex flex-col items-center text-center">
-                <span className="material-symbols-outlined text-brandGreen text-3xl mb-4">location_on</span>
-                <h3 className="text-xs font-black text-brandGreen tracking-widest uppercase mb-3">Location</h3>
-                <p className="text-xs text-brandGreenDark/90 font-bold leading-relaxed mb-4">
-                  Near Nesto Hypermarket,<br />
-                  Al Karama, Dubai - UAE
-                </p>
-                <a
-                  href="https://maps.app.goo.gl/CwqrXARF8BGvKfEQ7"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-auto text-[10px] font-black text-brandGreen hover:underline transition-all"
-                >
-                  FIND US ON MAPS &rarr;
+            {/* Direct contact */}
+            <div className="flex-1">
+              <h3
+                className="text-[#156734] font-bold text-xs tracking-[0.15em] uppercase mb-4"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                Say Hello
+              </h3>
+              <p
+                className="text-[#156734]/70 text-sm leading-relaxed font-semibold flex flex-col gap-1"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <a href="tel:+97148342856" className="hover:underline font-black text-[#156734]">
+                  Phone: +971 4 834 2856
                 </a>
-              </div>
-
-              {/* Hours Card */}
-              <div className="bg-[#EBE5CE] p-8 rounded-[32px] shadow-sm border border-brandGreen/5 hover:border-brandGreen/20 transition-all duration-300 flex flex-col items-center text-center">
-                <span className="material-symbols-outlined text-brandGreen text-3xl mb-4">schedule</span>
-                <h3 className="text-xs font-black text-brandGreen tracking-widest uppercase mb-3">OPEN HOURS</h3>
-                <p className="text-xs text-brandGreenDark/90 font-bold leading-relaxed">
-                  Every Single Day<br />
-                  <span className="text-brandGreen text-base font-black block mt-2">7:00 AM - 11:00 PM</span>
-                </p>
-                <p className="text-[10px] text-brandGreenDark/60 mt-4">Breakfast, lunch & late night bites served daily</p>
-              </div>
-
-              {/* Phone/Email Card */}
-              <div className="bg-[#EBE5CE] p-8 rounded-[32px] shadow-sm border border-brandGreen/5 hover:border-brandGreen/20 transition-all duration-300 flex flex-col items-center text-center">
-                <span className="material-symbols-outlined text-brandGreen text-3xl mb-4">contact_phone</span>
-                <h3 className="text-xs font-black text-brandGreen tracking-widest uppercase mb-3">SAY HELLO</h3>
-                <div className="text-xs text-brandGreenDark/90 font-bold leading-relaxed mb-4 flex flex-col items-center">
-                  <span>Need a table or takeout?</span>
-                  <a href="tel:+97148342856" className="text-brandGreen font-black hover:underline block mt-1">
-                    +971 4 834 2856
-                  </a>
-                  <a
-                    href="https://api.whatsapp.com/send?phone=971568867131"
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-[10px] font-black tracking-wider uppercase rounded-full transition-all duration-300"
-                  >
-                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
-                    </svg>
-                    WhatsApp Chat
-                  </a>
-                  <a
-                    href="mailto:vellarirestaurant@gmail.com"
-                    className="text-[10px] text-brandGreenDark/60 hover:text-brandGreen transition-colors block mt-2"
-                  >
-                    vellarirestaurant@gmail.com
-                  </a>
-                </div>
-                <a
-                  href="tel:+97148342856"
-                  className="mt-auto text-[10px] font-black text-brandGreen hover:underline transition-all"
-                >
-                  CALL DIRECT &rarr;
+                <a href="mailto:vellarirestaurant@gmail.com" className="hover:underline mt-1">
+                  Email: vellarirestaurant@gmail.com
                 </a>
-              </div>
-            </div>
-
-            {/* Social Media Bar */}
-            <div className="flex flex-col items-center gap-6">
-              <h4 className="text-[10px] font-black text-brandGreenDark/40 tracking-[0.25em] uppercase">Connect With Us</h4>
-              <div className="flex justify-center">
                 <a
                   href="https://www.instagram.com/vellari_restaurant?igsh=emxoZG9jY3pjM2Z3"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-12 h-12 bg-[#EBE5CE] rounded-full flex items-center justify-center border border-brandGreen/10 text-brandGreen hover:bg-brandGreen hover:text-white hover:border-brandGreen transition-all duration-300 shadow-sm hover:scale-110"
+                  className="hover:underline mt-1 font-bold text-[#156734] flex items-center gap-1.5"
                 >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                  </svg>
+                  Instagram: @vellari_restaurant
                 </a>
-              </div>
+              </p>
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-brandDark text-white py-12 border-t border-brandGreen/20">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-xs text-gray-400 font-medium">
-            © 2026 Vellari Restaurant. All rights reserved. Al Karama, Dubai, UAE.
+      <footer className="bg-[#fffcf2] border-t border-[#e5dbb2] px-5 md:px-14 py-12">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start justify-between gap-10">
+          <div>
+            <p
+              className="text-[#156734] font-black text-xl tracking-tight uppercase mb-2"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Vellari Restaurant
+            </p>
+            <p
+              className="text-[#156734]/50 text-sm max-w-xs leading-relaxed font-medium"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Authentic Kerala street eats in Al Karama, Dubai. Open daily 7:00 AM – 11:00 PM.
+            </p>
+          </div>
+          <div className="flex gap-14 flex-wrap">
+            <div>
+              <p
+                className="text-[#156734] font-semibold text-xs tracking-[0.15em] uppercase mb-4"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                Navigate
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/menu"
+                  className="text-[#156734]/60 text-sm hover:text-[#156734] transition-colors font-medium text-left"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  Menu
+                </Link>
+                <a
+                  href="#specials"
+                  className="text-[#156734]/60 text-sm hover:text-[#156734] transition-colors font-medium text-left"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  Specials
+                </a>
+                <a
+                  href="#making"
+                  className="text-[#156734]/60 text-sm hover:text-[#156734] transition-colors font-medium text-left"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  The Making
+                </a>
+              </div>
+            </div>
+            <div>
+              <p
+                className="text-[#156734] font-semibold text-xs tracking-[0.15em] uppercase mb-4"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                Visit Us
+              </p>
+              <div
+                className="text-[#156734]/60 text-sm leading-relaxed font-medium flex flex-col gap-1 text-left"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <span>Near Nesto Hypermarket</span>
+                <span>Al Karama, Dubai - UAE</span>
+                <span className="mt-2">+971 4 834 2856</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto mt-10 pt-6 border-t border-[#e5dbb2] flex items-center justify-between">
+          <p
+            className="text-[#156734]/40 text-xs"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            © 2026 Vellari Restaurant. All rights reserved.
           </p>
         </div>
       </footer>
@@ -365,7 +639,7 @@ export default function Home() {
       {selectedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="relative w-full max-w-3xl aspect-video bg-black rounded-[32px] overflow-hidden shadow-2xl border border-white/10">
-            <button 
+            <button
               onClick={() => setSelectedVideo(null)}
               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
             >
