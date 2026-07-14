@@ -7,6 +7,8 @@ import { supabase } from "@/utils/supabase";
 export default function Home() {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,13 +55,28 @@ export default function Home() {
   // Header Scroll handler
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
+      const currentScrollY = window.scrollY;
+
+      // Update scrolled state (background solid styling)
+      if (currentScrollY > 20) {
         setScrolled(true);
       } else {
         setScrolled(false);
       }
+
+      // Smart header visibility logic
+      if (currentScrollY > lastScrollYRef.current && currentScrollY > 80) {
+        // Scrolling down: hide header
+        setHeaderVisible(false);
+      } else {
+        // Scrolling up: show header
+        setHeaderVisible(true);
+      }
+
+      lastScrollYRef.current = currentScrollY;
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -148,8 +165,10 @@ export default function Home() {
       {/* Header / Navbar */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 px-6 py-5 md:px-14 flex items-center justify-between transition-all duration-300 ${
+          headerVisible ? "translate-y-0" : "-translate-y-full"
+        } ${
           scrolled
-            ? "bg-[#fffcf2]/95 backdrop-blur-sm shadow-md border-b border-[#e5dbb2]/30"
+            ? "bg-[#fffcf2] shadow-md border-b border-[#e5dbb2]/30"
             : "bg-transparent"
         }`}
       >
