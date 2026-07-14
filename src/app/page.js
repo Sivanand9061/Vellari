@@ -33,6 +33,7 @@ export default function Home() {
   }, []);
 
   const [activeOrderId, setActiveOrderId] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   // Check for active order on mount and subscribe in real-time
   useEffect(() => {
@@ -85,17 +86,43 @@ export default function Home() {
     };
   }, []);
 
+  const specials = [
+    {
+      name: "Chicken Stew",
+      price: 17.00,
+      image: "/img/chicken_stew.png"
+    },
+    {
+      name: "Chicken Pothichoru",
+      price: 14.00,
+      image: "/img/chicken_pothichoru.png"
+    }
+  ];
+
+  const makingVideos = [
+    {
+      title: "Flaky Malabar Parotta",
+      thumbnail: "/img/making_parotta.png",
+      embedUrl: "https://www.youtube.com/embed/v24g7c3s_Xk"
+    },
+    {
+      title: "Meter Chai Stretching",
+      thumbnail: "/img/making_chai.png",
+      embedUrl: "https://www.youtube.com/embed/5U9N1wF35bU"
+    }
+  ];
+
   if (isMaintenance) {
     return <MaintenancePage />;
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-brandLight">
+    <div className="flex flex-col min-h-screen bg-[#FAF8F2]">
       {/* Header */}
       <header
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-brandDark/95 backdrop-blur-md shadow-md border-b border-brandGreen/25"
+            ? "bg-[#111111]/95 backdrop-blur-md shadow-md border-b border-brandGreen/25"
             : "bg-transparent border-b border-transparent"
         }`}
       >
@@ -108,14 +135,19 @@ export default function Home() {
             <img
               src="/logo_english.png"
               alt="Vellari Karama Dubai"
-              className="h-10 md:h-12 w-auto object-contain mix-blend-screen"
+              className={`h-10 md:h-12 w-auto object-contain transition-all duration-300 ${
+                scrolled ? "mix-blend-screen brightness-100" : ""
+              }`}
+              style={!scrolled ? { filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" } : {}}
             />
           </div>
 
           {/* Contact Link on the Right */}
           <a
             href="#contact"
-            className="inline-flex items-center text-sm font-bold text-white/90 hover:text-brandGold transition-colors duration-300"
+            className={`inline-flex items-center text-sm font-black transition-colors duration-300 ${
+              scrolled ? "text-white/90 hover:text-brandGold" : "text-brandGreen hover:text-brandGreenDark"
+            }`}
           >
             CONTACT US
           </a>
@@ -124,59 +156,124 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative h-[85vh] flex items-end justify-center pb-24 overflow-hidden">
-          {/* Background Image */}
-          <div className="absolute inset-0 z-0">
-            <div
-              className="w-full h-full bg-cover bg-center"
-              style={{ backgroundImage: `url('/street_food_hero.png')` }}
-            ></div>
-            <div className="absolute inset-0 hero-gradient"></div>
-          </div>
+        {/* Landing Hero Section (Rounded Card: Cream bg, Malayalam logo) */}
+        <section className="relative w-full pt-28 pb-16 bg-[#EBE5CE] rounded-b-[48px] shadow-sm flex flex-col items-center justify-center overflow-hidden">
+          {/* Subtle background overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.15)_0%,rgba(0,0,0,0)_80%)] pointer-events-none"></div>
 
           {/* Content */}
           <div className="relative z-10 text-center px-6 max-w-3xl mx-auto flex flex-col items-center">
-            {/* Malayalam Logo above Menu Button */}
-            <div className="animate-fade-in-up mb-8 flex flex-col items-center">
-              <span className="text-[10px] md:text-[11px] font-black tracking-[0.3em] text-[#F5B041] uppercase mb-3 leading-none">
+            {/* Parent Brand & Malayalam Logo */}
+            <div className="animate-fade-in-up flex flex-col items-center mb-6">
+              <span className="text-[10px] md:text-[11px] font-black tracking-[0.3em] text-brandGreen uppercase mb-3.5 leading-none">
                 KL 10 RESTAURANT
               </span>
               <img
                 src="/logo_malayalam.png"
                 alt="വെള്ളരി"
-                className="h-24 md:h-32 w-auto object-contain mix-blend-screen"
+                className="h-28 md:h-36 w-auto object-contain transition-all duration-300"
+                style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
               />
             </div>
+          </div>
+        </section>
 
-            {/* Central CTA Button (Glassmorphic Style) */}
-            <div className="animate-fade-in-up">
-              <Link
-                href="/menu"
-                className="inline-flex items-center gap-3 px-8 py-5 bg-white/10 backdrop-blur-md text-white text-base font-black tracking-widest rounded-full border-2 border-white/30 hover:bg-white/20 hover:border-brandGold hover:text-brandGold transition-all duration-300 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95"
-              >
-                <span className="material-symbols-outlined">menu_book</span>
-                EXPLORE MENU
-              </Link>
+        {/* Explore Menu Button (Placed just below the card with some margin) */}
+        <div className="flex justify-center -mt-6 relative z-20 animate-fade-in-up">
+          <Link
+            href="/menu"
+            className="inline-flex items-center gap-2.5 px-8 py-4.5 bg-[#006B2B] hover:bg-[#004D1F] text-white text-sm font-black tracking-widest uppercase rounded-full shadow-[0_8px_24px_rgba(0,107,43,0.3)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-float"
+          >
+            <span className="material-symbols-outlined text-[18px]">menu_book</span>
+            EXPLORE MENU
+          </Link>
+        </div>
+
+        {/* Leave some space and present Chef's Special */}
+        <section className="pt-16 pb-8 px-6 bg-[#FAF8F2]">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8 flex flex-col items-center">
+              <h2 className="text-xl font-black text-brandGreen tracking-widest uppercase mb-1">Chef's Special</h2>
+              <div className="w-10 h-0.5 bg-brandGold rounded-full"></div>
+            </div>
+
+            {/* Specials horizontal list */}
+            <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-none -mx-6 px-6">
+              {specials.map((item, idx) => (
+                <div 
+                  key={idx} 
+                  className="flex-shrink-0 w-64 bg-[#EBE5CE] rounded-[32px] p-4 shadow-sm border border-brandGreen/5 hover:scale-[1.01] transition-transform duration-300"
+                >
+                  <div className="relative w-full h-44 rounded-[24px] overflow-hidden mb-4 bg-white/20">
+                    <img 
+                      src={item.image} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-sm font-black text-brandGreen">{item.price.toFixed(2)}</span>
+                    <span className="text-[11px] font-black text-brandGreenDark/90 tracking-wide uppercase">{item.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* The Making Section */}
+        <section className="py-10 px-6 bg-[#FAF8F2]">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8 flex flex-col items-center">
+              <h2 className="text-xl font-black text-brandGreen tracking-widest uppercase mb-1">The Making</h2>
+              <div className="w-10 h-0.5 bg-brandGold rounded-full"></div>
+            </div>
+
+            {/* Videos horizontal list */}
+            <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-none -mx-6 px-6">
+              {makingVideos.map((video, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedVideo(video.embedUrl)}
+                  className="flex-shrink-0 w-64 cursor-pointer group"
+                >
+                  <div className="relative w-full h-40 rounded-[28px] overflow-hidden shadow-md bg-white/20">
+                    <img 
+                      src={video.thumbnail} 
+                      alt={video.title} 
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                    />
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center transition-colors group-hover:bg-black/35 duration-300">
+                      <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <span className="material-symbols-outlined text-brandGreen text-2xl ml-0.5">play_arrow</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="block mt-3 px-1 text-[11px] font-black text-brandGreenDark/90 tracking-wider uppercase text-left">
+                    {video.title}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Contact Section */}
-        <section id="contact" className="py-20 bg-brandLight">
+        <section id="contact" className="py-16 bg-[#FAF8F2]">
           <div className="max-w-4xl mx-auto px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-black text-brandGreen tracking-wide mb-2">JOIN THE VIBE</h2>
-              <div className="w-16 h-1 bg-brandGold mx-auto rounded-full"></div>
+            <div className="text-center mb-12 flex flex-col items-center">
+              <h2 className="text-xl font-black text-brandGreen tracking-widest uppercase mb-1">JOIN THE VIBE</h2>
+              <div className="w-10 h-0.5 bg-brandGold rounded-full"></div>
             </div>
 
             {/* Contact Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
               {/* Location Card */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-brandGreen/5 hover:border-brandGreen/25 transition-all duration-300 flex flex-col items-center text-center">
+              <div className="bg-[#EBE5CE] p-8 rounded-[32px] shadow-sm border border-brandGreen/5 hover:border-brandGreen/20 transition-all duration-300 flex flex-col items-center text-center">
                 <span className="material-symbols-outlined text-brandGreen text-3xl mb-4">location_on</span>
-                <h3 className="text-sm font-black text-brandGreen tracking-widest uppercase mb-3">Location</h3>
-                <p className="text-sm text-gray-600 font-medium leading-relaxed mb-4">
+                <h3 className="text-xs font-black text-brandGreen tracking-widest uppercase mb-3">Location</h3>
+                <p className="text-xs text-brandGreenDark/90 font-bold leading-relaxed mb-4">
                   Near Nesto Hypermarket,<br />
                   Al Karama, Dubai - UAE
                 </p>
@@ -184,51 +281,51 @@ export default function Home() {
                   href="https://maps.app.goo.gl/CwqrXARF8BGvKfEQ7"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-auto text-xs font-bold text-brandGold hover:text-brandGoldDark transition-colors"
+                  className="mt-auto text-[10px] font-black text-brandGreen hover:underline transition-all"
                 >
                   FIND US ON MAPS &rarr;
                 </a>
               </div>
 
               {/* Hours Card */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-brandGreen/5 hover:border-brandGreen/25 transition-all duration-300 flex flex-col items-center text-center">
+              <div className="bg-[#EBE5CE] p-8 rounded-[32px] shadow-sm border border-brandGreen/5 hover:border-brandGreen/20 transition-all duration-300 flex flex-col items-center text-center">
                 <span className="material-symbols-outlined text-brandGreen text-3xl mb-4">schedule</span>
-                <h3 className="text-sm font-black text-brandGreen tracking-widest uppercase mb-3">OPEN HOURS</h3>
-                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                <h3 className="text-xs font-black text-brandGreen tracking-widest uppercase mb-3">OPEN HOURS</h3>
+                <p className="text-xs text-brandGreenDark/90 font-bold leading-relaxed">
                   Every Single Day<br />
-                  <span className="text-brandGreen text-lg font-black block mt-2">7:00 AM - 11:00 PM</span>
+                  <span className="text-brandGreen text-base font-black block mt-2">7:00 AM - 11:00 PM</span>
                 </p>
-                <p className="text-xs text-gray-400 mt-4">Breakfast, lunch & late night bites served daily</p>
+                <p className="text-[10px] text-brandGreenDark/60 mt-4">Breakfast, lunch & late night bites served daily</p>
               </div>
 
               {/* Phone/Email Card */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-brandGreen/5 hover:border-brandGreen/25 transition-all duration-300 flex flex-col items-center text-center">
+              <div className="bg-[#EBE5CE] p-8 rounded-[32px] shadow-sm border border-brandGreen/5 hover:border-brandGreen/20 transition-all duration-300 flex flex-col items-center text-center">
                 <span className="material-symbols-outlined text-brandGreen text-3xl mb-4">contact_phone</span>
-                <h3 className="text-sm font-black text-brandGreen tracking-widest uppercase mb-3">SAY HELLO</h3>
-                <div className="text-sm text-gray-600 font-medium leading-relaxed mb-4">
-                  Need a table or takeout?
+                <h3 className="text-xs font-black text-brandGreen tracking-widest uppercase mb-3">SAY HELLO</h3>
+                <div className="text-xs text-brandGreenDark/90 font-bold leading-relaxed mb-4 flex flex-col items-center">
+                  <span>Need a table or takeout?</span>
                   <a href="tel:+97148342856" className="text-brandGreen font-black hover:underline block mt-1">
                     +971 4 834 2856
                   </a>
                   <a
                     href="https://api.whatsapp.com/send?phone=971568867131"
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-xs font-bold rounded-full transition-all duration-300"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-whatsappGreen hover:bg-whatsappGreenDark text-white text-[10px] font-black tracking-wider uppercase rounded-full transition-all duration-300"
                   >
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.638 1.97 14.162.947 11.53.947c-5.445 0-9.87 4.373-9.874 9.8.001 2.012.528 3.98 1.527 5.717l-.991 3.616 3.755-.972zm10.902-6.53c-.299-.149-1.771-.862-2.046-.962-.275-.1-.475-.149-.675.15-.2.299-.774.962-.949 1.162-.175.199-.349.224-.648.075-1.125-.563-1.895-1.036-2.656-2.336-.2-.349.2-.324.573-1.073.06-.12.03-.224-.015-.324-.045-.1-.475-1.123-.65-1.547-.17-.41-.358-.353-.49-.36-.125-.006-.27-.008-.413-.008-.143 0-.377.054-.574.271-.197.216-.753.727-.753 1.773s.77 2.059.877 2.203c.107.143 1.513 2.288 3.664 3.203.512.219.91.35 1.22.447.515.162.983.139 1.353.084.413-.06 1.771-.715 2.021-1.407.25-.693.25-1.288.175-1.408-.075-.12-.275-.2-.574-.349z" />
                     </svg>
                     WhatsApp Chat
                   </a>
                   <a
                     href="mailto:vellarirestaurant@gmail.com"
-                    className="text-xs text-gray-400 hover:text-brandGreen transition-colors block mt-2"
+                    className="text-[10px] text-brandGreenDark/60 hover:text-brandGreen transition-colors block mt-2"
                   >
                     vellarirestaurant@gmail.com
                   </a>
                 </div>
                 <a
                   href="tel:+97148342856"
-                  className="mt-auto text-xs font-bold text-brandGold hover:text-brandGoldDark transition-colors"
+                  className="mt-auto text-[10px] font-black text-brandGreen hover:underline transition-all"
                 >
                   CALL DIRECT &rarr;
                 </a>
@@ -237,13 +334,13 @@ export default function Home() {
 
             {/* Social Media Bar */}
             <div className="flex flex-col items-center gap-6">
-              <h4 className="text-xs font-black text-gray-400 tracking-[0.25em] uppercase">Connect With Us</h4>
+              <h4 className="text-[10px] font-black text-brandGreenDark/40 tracking-[0.25em] uppercase">Connect With Us</h4>
               <div className="flex justify-center">
                 <a
                   href="https://www.instagram.com/vellari_restaurant?igsh=emxoZG9jY3pjM2Z3"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-brandGreen/10 text-brandGreen hover:bg-brandGreen hover:text-white hover:border-brandGreen transition-all duration-300 shadow-sm hover:scale-110"
+                  className="w-12 h-12 bg-[#EBE5CE] rounded-full flex items-center justify-center border border-brandGreen/10 text-brandGreen hover:bg-brandGreen hover:text-white hover:border-brandGreen transition-all duration-300 shadow-sm hover:scale-110"
                 >
                   <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
@@ -264,9 +361,30 @@ export default function Home() {
         </div>
       </footer>
 
+      {/* Video Modal Overlay */}
+      {selectedVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-3xl aspect-video bg-black rounded-[32px] overflow-hidden shadow-2xl border border-white/10">
+            <button 
+              onClick={() => setSelectedVideo(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
+            <iframe
+              src={`${selectedVideo}?autoplay=1`}
+              title="The Making Video"
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
+
       {/* Active Order Recovery Banner */}
       {activeOrderId && (
-        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-[350px] z-40 bg-brandDark/95 backdrop-blur-md border border-brandGold/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4">
+        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-[350px] z-40 bg-[#111111]/95 backdrop-blur-md border border-brandGold/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-scaleUp">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-brandGold text-xl animate-spin">sync</span>
             <div className="flex flex-col text-left">
@@ -276,7 +394,7 @@ export default function Home() {
           </div>
           <Link
             href={`/order/${activeOrderId}`}
-            className="px-4 py-2 bg-brandGold hover:bg-brandGold/90 text-black text-[9px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+            className="px-4 py-2 bg-brandGold hover:bg-brandGold/90 text-[#111111] text-[9px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
           >
             Track
           </Link>
