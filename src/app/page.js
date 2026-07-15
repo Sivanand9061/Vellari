@@ -15,19 +15,20 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const touchStartX = useRef(null);
 
-  const HERO_SLIDES = [
+  // Default fallback values
+  const DEFAULT_HERO_SLIDES = [
     { img: "/img/biryani.png", alt: "Chicken Dum Biryani" },
     { img: "/img/poratta.png", alt: "London Poratta Special" },
     { img: "/img/noodles.png", alt: "Prawns Noodles" },
   ];
 
-  const specials = [
+  const DEFAULT_SPECIALS = [
     { name: "Chicken Stew", price: "17.00", tag: "Kerala Special", image: "/img/chicken_stew.png" },
     { name: "Chicken Pothichoru", price: "14.00", tag: "Banana Leaf Feast", image: "/img/chicken_pothichoru.png" },
     { name: "Chicken Fry Dum Biriyani", price: "19.00", tag: "Karama Best", image: "/img/biryani.png" },
   ];
 
-  const makingVideos = [
+  const DEFAULT_MAKING_VIDEOS = [
     {
       title: "Flaky Malabar Parotta",
       thumbnail: "/img/making_parotta.png",
@@ -39,6 +40,87 @@ export default function Home() {
       embedUrl: "https://www.youtube.com/embed/5U9N1wF35bU"
     }
   ];
+
+  const DEFAULT_CONFIG = {
+    heroHeadingLine1: "Authentic Kerala",
+    heroHeadingLine2: "Street Eats",
+    parentBrandText: "KL 10 RESTAURANT",
+    englishLogoUrl: "/logo_english.png",
+    malayalamLogoUrl: "/logo_malayalam.png",
+  };
+
+  const [heroSlides, setHeroSlides] = useState(DEFAULT_HERO_SLIDES);
+  const [specials, setSpecials] = useState(DEFAULT_SPECIALS);
+  const [makingVideos, setMakingVideos] = useState(DEFAULT_MAKING_VIDEOS);
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
+
+  // Fetch CMS content and subscribe to changes
+  useEffect(() => {
+    const fetchCMSData = async () => {
+      // 1. Fetch Config
+      const { data: configData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "landingPageConfig")
+        .single();
+      if (configData && configData.value) {
+        setConfig(prev => ({ ...prev, ...configData.value }));
+        if (configData.value.heroSlides && Array.isArray(configData.value.heroSlides)) {
+          setHeroSlides(configData.value.heroSlides);
+        }
+      }
+
+      // 2. Fetch Specials
+      const { data: specialsData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "landingPageSpecials")
+        .single();
+      if (specialsData && Array.isArray(specialsData.value)) {
+        setSpecials(specialsData.value);
+      }
+
+      // 3. Fetch Videos
+      const { data: videosData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "landingPageVideos")
+        .single();
+      if (videosData && Array.isArray(videosData.value)) {
+        setMakingVideos(videosData.value);
+      }
+    };
+
+    fetchCMSData();
+
+    // Subscribe to settings table updates in real-time
+    const channel = supabase
+      .channel("landing-page-cms")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "settings" },
+        (payload) => {
+          if (payload.new) {
+            const { key, value } = payload.new;
+            if (key === "landingPageConfig" && value) {
+              setConfig(prev => ({ ...prev, ...value }));
+              if (value.heroSlides && Array.isArray(value.heroSlides)) {
+                setHeroSlides(value.heroSlides);
+              }
+            } else if (key === "landingPageSpecials" && Array.isArray(value)) {
+              setSpecials(value);
+            } else if (key === "landingPageVideos" && Array.isArray(value)) {
+              setMakingVideos(value);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Maintenance Check
   useEffect(() => {
@@ -134,10 +216,10 @@ export default function Home() {
   // Slide Timer
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((c) => (c + 1) % HERO_SLIDES.length);
+      setCurrentSlide((c) => (c + 1) % heroSlides.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length]);
 
   const onTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
@@ -149,15 +231,15 @@ export default function Home() {
     if (Math.abs(delta) > 40) {
       setCurrentSlide((c) =>
         delta < 0
-          ? (c + 1) % HERO_SLIDES.length
-          : (c - 1 + HERO_SLIDES.length) % HERO_SLIDES.length
+          ? (c + 1) % heroSlides.length
+          : (c - 1 + heroSlides.length) % heroSlides.length
       );
     }
     touchStartX.current = null;
   };
 
   if (isMaintenance) {
-    return <MaintenancePage />;
+    return <MaintenancePage config={config} />;
   }
 
   return (
@@ -276,7 +358,7 @@ export default function Home() {
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             <span className="w-6 h-px bg-[#156734]/30" />
-            KL 10 RESTAURANT
+            {config.parentBrandText}
             <span className="w-6 h-px bg-[#156734]/30" />
           </div>
 
@@ -289,13 +371,13 @@ export default function Home() {
                 fontSize: "clamp(2rem, 6.5vw, 4.2rem)",
               }}
             >
-              Authentic Kerala<br />
-              <span className="text-[#156734]/35">Street Eats</span>
+              {config.heroHeadingLine1}<br />
+              <span className="text-[#156734]/35">{config.heroHeadingLine2}</span>
             </h1>
             
             {/* Malayalam Subtitle Logo */}
             <img
-              src="/logo_malayalam.png"
+              src={config.malayalamLogoUrl}
               alt="വെള്ളരി"
               className="h-10 md:h-14 w-auto object-contain mt-1 opacity-90"
               style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
@@ -308,11 +390,11 @@ export default function Home() {
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
-            {HERO_SLIDES.map((slide, i) => (
+            {heroSlides.map((slide, i) => (
               <img
-                key={slide.alt}
+                key={slide.alt || i}
                 src={slide.img}
-                alt={slide.alt}
+                alt={slide.alt || "Food Plate"}
                 className="absolute w-[95%] select-none pointer-events-none transition-all duration-700"
                 style={{
                   filter: "drop-shadow(0 16px 32px rgba(0,0,0,0.12))",
@@ -323,7 +405,7 @@ export default function Home() {
             ))}
             {/* Invisible spacer to hold height */}
             <img
-              src={HERO_SLIDES[0].img}
+              src={heroSlides[0]?.img || ""}
               alt=""
               aria-hidden
               className="w-[95%] invisible"
@@ -697,7 +779,7 @@ export default function Home() {
   );
 }
 
-function MaintenancePage() {
+function MaintenancePage({ config }) {
   return (
     <div className="min-h-screen bg-brandDark text-white font-sans flex flex-col justify-between items-center px-6 py-12 relative overflow-hidden select-none">
       {/* Background radial glow */}
@@ -707,7 +789,7 @@ function MaintenancePage() {
       {/* Header English Logo */}
       <div className="w-full max-w-6xl flex justify-center md:justify-start items-center z-10">
         <img
-          src="/logo_english.png"
+          src={config?.englishLogoUrl || "/logo_english.png"}
           alt="Vellari"
           className="h-10 md:h-12 w-auto object-contain mix-blend-screen"
         />
@@ -719,7 +801,7 @@ function MaintenancePage() {
         <div className="relative flex items-center justify-center mb-2">
           <div className="absolute inset-0 bg-brandGold/20 rounded-full blur-xl animate-pulse"></div>
           <img
-            src="/logo_malayalam.png"
+            src={config?.malayalamLogoUrl || "/logo_malayalam.png"}
             alt="വെള്ളരി"
             className="h-20 w-auto object-contain mix-blend-screen relative z-10"
           />
