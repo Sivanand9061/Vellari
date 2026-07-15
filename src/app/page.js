@@ -445,17 +445,16 @@ export default function Home() {
               </h2>
             </div>
 
-            {/* List Layout matching Premium Figma */}
-            <div className="flex flex-col gap-5">
-              {specials.map((dish) => (
+            {/* Horizontal Scroll Layout with Small Square Cards */}
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 md:-mx-14 md:px-14 scrollbar-none">
+              {specials.map((dish, i) => (
                 <div
-                  key={dish.name}
-                  className="group flex items-center gap-5 rounded-[24px] overflow-hidden bg-[#fffcf2] shadow-[0px_4px_16px_rgba(21,103,52,0.06)] border border-[#e5dbb2]/20 hover:shadow-[0px_8px_24px_rgba(21,103,52,0.12)] hover:border-[#156734]/20 transition-all duration-300 p-4 text-left"
+                  key={dish.name || i}
+                  className="group shrink-0 rounded-[28px] overflow-hidden bg-[#fffcf2] shadow-[2px_4px_16px_rgba(21,103,52,0.06)] border border-[#e5dbb2]/20 hover:shadow-[2px_6px_24px_rgba(21,103,52,0.12)] hover:border-[#156734]/20 transition-all duration-300 p-3 text-left flex flex-col justify-between"
+                  style={{ width: 160, height: 230 }}
                 >
-                  {/* Image with background fallback */}
-                  <div
-                    className="shrink-0 rounded-[20px] overflow-hidden bg-[#e5dbb2]/40 relative w-[105px] h-[105px] md:w-[145px] md:h-[145px]"
-                  >
+                  {/* Square Image container */}
+                  <div className="relative w-full aspect-square rounded-[20px] overflow-hidden bg-[#e5dbb2]/40 mb-2.5">
                     <img
                       src={dish.image}
                       alt={dish.name}
@@ -464,23 +463,21 @@ export default function Home() {
                   </div>
 
                   {/* Info */}
-                  <div className="flex flex-1 items-center justify-between min-w-0 pr-2">
-                    <div className="min-w-0">
-                      <span
-                        className="text-[#156734]/50 text-[9px] font-bold uppercase tracking-widest block mb-1"
-                        style={{ fontFamily: "Montserrat, sans-serif" }}
-                      >
-                        {dish.tag}
-                      </span>
-                      <p
-                        className="text-[#156734] font-bold text-sm md:text-base tracking-tight truncate uppercase"
-                        style={{ fontFamily: "Montserrat, sans-serif" }}
-                      >
-                        {dish.name}
-                      </p>
-                    </div>
+                  <div className="flex flex-col gap-0.5 justify-end flex-1">
+                    <span
+                      className="text-[#156734]/50 text-[8px] font-bold uppercase tracking-widest block"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {dish.tag}
+                    </span>
                     <p
-                      className="text-[#156734] font-black text-base md:text-lg tracking-tight shrink-0 ml-4"
+                      className="text-[#156734] font-bold text-xs tracking-tight uppercase truncate"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {dish.name}
+                    </p>
+                    <p
+                      className="text-[#156734] font-black text-sm tracking-tight mt-1"
                       style={{ fontFamily: "Montserrat, sans-serif" }}
                     >
                       AED {dish.price}
