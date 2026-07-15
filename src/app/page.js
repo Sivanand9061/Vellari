@@ -454,8 +454,7 @@ export default function Home() {
                 >
                   {/* Image with background fallback */}
                   <div
-                    className="shrink-0 rounded-[16px] overflow-hidden bg-[#e5dbb2]/40 relative"
-                    style={{ width: 90, height: 90 }}
+                    className="shrink-0 rounded-[20px] overflow-hidden bg-[#e5dbb2]/40 relative w-[105px] h-[105px] md:w-[145px] md:h-[145px]"
                   >
                     <img
                       src={dish.image}
