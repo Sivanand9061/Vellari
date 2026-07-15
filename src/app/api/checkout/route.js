@@ -1,5 +1,6 @@
 import { supabase } from "@/utils/supabase";
 import { NextResponse } from "next/server";
+import { menuData } from "@/utils/menuData";
 
 export async function POST(request) {
   try {
@@ -11,6 +12,66 @@ export async function POST(request) {
         { success: false, error: "Missing required fields." },
         { status: 400 }
       );
+    }
+
+    // Server-side Total recalculation & validation for security
+    let finalTotal = Number(total);
+    try {
+      // 1. Fetch CMS specials
+      const { data: specialsSetting } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "landingPageSpecials")
+        .single();
+      const specialsList = (specialsSetting && Array.isArray(specialsSetting.value)) ? specialsSetting.value : [];
+
+      // 2. Build master price map (normalized name -> numeric price)
+      const priceMap = {};
+
+      // Load static menu data
+      Object.values(menuData).forEach((categoryItems) => {
+        categoryItems.forEach((item) => {
+          const cleanPriceStr = item.price.replace(/[^\d.]/g, "");
+          const parsedPrice = parseFloat(cleanPriceStr);
+          if (!isNaN(parsedPrice)) {
+            priceMap[item.name.trim().toLowerCase()] = parsedPrice;
+          }
+        });
+      });
+
+      // Overwrite with dynamic specials data
+      specialsList.forEach((special) => {
+        const cleanPriceStr = String(special.price).replace(/[^\d.]/g, "");
+        const parsedPrice = parseFloat(cleanPriceStr);
+        if (!isNaN(parsedPrice)) {
+          priceMap[special.name.trim().toLowerCase()] = parsedPrice;
+        }
+      });
+
+      // 3. Compute expected total
+      let expectedTotal = 0;
+      let allItemsFound = true;
+      for (const cartItem of items) {
+        const itemNameLower = cartItem.name.trim().toLowerCase();
+        const itemPrice = priceMap[itemNameLower];
+        if (itemPrice === undefined) {
+          allItemsFound = false;
+          console.warn(`Price for item "${cartItem.name}" not found on server price map.`);
+        } else {
+          expectedTotal += itemPrice * Number(cartItem.quantity);
+        }
+      }
+
+      // If all items were successfully matched, enforce the server price total!
+      if (allItemsFound && expectedTotal > 0) {
+        const diff = Math.abs(expectedTotal - Number(total));
+        if (diff > 0.05) {
+          console.warn(`Price tampering detected! Client total: ${total}, Server expected: ${expectedTotal}. Overriding total.`);
+          finalTotal = expectedTotal;
+        }
+      }
+    } catch (pricingError) {
+      console.error("Pricing validation error:", pricingError);
     }
 
     // Clean phone number (remove spaces, etc.)
@@ -151,7 +212,7 @@ export async function POST(request) {
       .insert({
         customer_phone: cleanPhone,
         items,
-        total,
+        total: finalTotal,
         order_type: orderType,
         address_gps: addressGps || null,
         address_details: addressDetails || null,
