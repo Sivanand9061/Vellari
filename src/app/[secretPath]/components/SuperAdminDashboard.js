@@ -121,7 +121,6 @@ export default function SuperAdminDashboard() {
       if (specialsData && Array.isArray(specialsData.value)) {
         setCmsSpecials(specialsData.value);
       } else {
-        // Use default specials as starting point if DB is clean
         setCmsSpecials([
           { name: "Chicken Stew", price: "17.00", tag: "Kerala Special", image: "/img/chicken_stew.png" },
           { name: "Chicken Pothichoru", price: "14.00", tag: "Banana Leaf Feast", image: "/img/chicken_pothichoru.png" },
@@ -148,6 +147,75 @@ export default function SuperAdminDashboard() {
       console.error("Error loading superadmin stats:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Upload Utility
+  const handleFileUpload = async (file, type, index = null, fieldName = null) => {
+    if (!file) return;
+
+    setSaving(true);
+    logAction(`Uploading file: ${file.name}...`);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
+
+      // Upload file to Supabase storage 'assets' bucket
+      const { data, error } = await supabase.storage
+        .from("assets")
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        // If bucket doesn't exist, try creating it and retry
+        if (error.message.includes("not found") || error.message.includes("does not exist") || error.message.includes("Bucket not found")) {
+          logAction("Bucket 'assets' not found. Attempting to create it...");
+          const { error: createErr } = await supabase.storage.createBucket("assets", { public: true });
+          if (createErr) {
+            throw new Error(`Failed to automatically create 'assets' bucket: ${createErr.message}. Please create a public bucket named 'assets' in your Supabase Dashboard.`);
+          }
+          logAction("Bucket 'assets' created successfully. Retrying upload...");
+          
+          const { data: retryData, error: retryErr } = await supabase.storage
+            .from("assets")
+            .upload(filePath, file);
+          if (retryErr) throw retryErr;
+        } else {
+          throw error;
+        }
+      }
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage.from("assets").getPublicUrl(filePath);
+      const publicUrl = publicUrlData.publicUrl;
+      logAction(`SUCCESS: Uploaded ${file.name} -> ${publicUrl}`);
+
+      // Update state dynamically based on what was uploaded
+      if (type === "config") {
+        setCmsConfig(prev => ({ ...prev, [fieldName]: publicUrl }));
+      } else if (type === "special") {
+        const temp = [...cmsSpecials];
+        temp[index].image = publicUrl;
+        setCmsSpecials(temp);
+      } else if (type === "video") {
+        const temp = [...cmsVideos];
+        temp[index].thumbnail = publicUrl;
+        setCmsVideos(temp);
+      } else if (type === "heroSlide") {
+        const temp = [...cmsConfig.heroSlides];
+        temp[index].img = publicUrl;
+        setCmsConfig(prev => ({ ...prev, heroSlides: temp }));
+      }
+      
+      alert("Media uploaded successfully!");
+    } catch (err) {
+      logAction(`FAILED: Upload error: ${err.message}`);
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -475,32 +543,75 @@ export default function SuperAdminDashboard() {
                     className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
                   />
                 </div>
+
                 <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Malayalam Logo URL</label>
-                  <input
-                    type="text"
-                    value={cmsConfig.malayalamLogoUrl}
-                    onChange={(e) => setCmsConfig({ ...cmsConfig, malayalamLogoUrl: e.target.value })}
-                    className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
-                  />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">English Logo Image</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={cmsConfig.englishLogoUrl}
+                      onChange={(e) => setCmsConfig({ ...cmsConfig, englishLogoUrl: e.target.value })}
+                      className="flex-1 bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                    />
+                    <label className="px-4 py-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs font-bold uppercase rounded-xl transition-all cursor-pointer shadow active:scale-97 flex items-center gap-1.5 shrink-0 border border-white/5">
+                      <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e.target.files[0], "config", null, "englishLogoUrl")}
+                      />
+                    </label>
+                  </div>
                 </div>
+
                 <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hero Heading Line 1</label>
-                  <input
-                    type="text"
-                    value={cmsConfig.heroHeadingLine1}
-                    onChange={(e) => setCmsConfig({ ...cmsConfig, heroHeadingLine1: e.target.value })}
-                    className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
-                  />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Malayalam Logo Image</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={cmsConfig.malayalamLogoUrl}
+                      onChange={(e) => setCmsConfig({ ...cmsConfig, malayalamLogoUrl: e.target.value })}
+                      className="flex-1 bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                    />
+                    <label className="px-4 py-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs font-bold uppercase rounded-xl transition-all cursor-pointer shadow active:scale-97 flex items-center gap-1.5 shrink-0 border border-white/5">
+                      <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e.target.files[0], "config", null, "malayalamLogoUrl")}
+                      />
+                    </label>
+                  </div>
+                  {cmsConfig.malayalamLogoUrl && (
+                    <img src={cmsConfig.malayalamLogoUrl} alt="Malayalam Logo Preview" className="h-10 w-auto object-contain mt-1 bg-white/5 p-1 rounded border border-[#2a2a2a]" />
+                  )}
                 </div>
+
                 <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hero Heading Line 2</label>
-                  <input
-                    type="text"
-                    value={cmsConfig.heroHeadingLine2}
-                    onChange={(e) => setCmsConfig({ ...cmsConfig, heroHeadingLine2: e.target.value })}
-                    className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hero Heading Line 1</label>
+                      <input
+                        type="text"
+                        value={cmsConfig.heroHeadingLine1}
+                        onChange={(e) => setCmsConfig({ ...cmsConfig, heroHeadingLine1: e.target.value })}
+                        className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hero Heading Line 2</label>
+                      <input
+                        type="text"
+                        value={cmsConfig.heroHeadingLine2}
+                        onChange={(e) => setCmsConfig({ ...cmsConfig, heroHeadingLine2: e.target.value })}
+                        className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -511,6 +622,71 @@ export default function SuperAdminDashboard() {
                   className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
                 >
                   Save Branding Config
+                </button>
+              </div>
+            </div>
+
+            {/* Hero Carousel Slides Editor */}
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-6 rounded-2xl flex flex-col gap-4">
+              <h3 className="text-sm font-black uppercase tracking-wider text-white border-b border-[#2a2a2a] pb-3">Hero slides carousel</h3>
+              
+              <div className="flex flex-col gap-4">
+                {cmsConfig.heroSlides?.map((slide, i) => (
+                  <div key={i} className="flex flex-col md:flex-row items-center gap-3 p-3 bg-[#222] rounded-xl border border-[#2a2a2a]">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2.5 w-full">
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[8px] font-black text-gray-400 uppercase">Image URL</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={slide.img}
+                            onChange={(e) => {
+                              const temp = [...cmsConfig.heroSlides];
+                              temp[i].img = e.target.value;
+                              setCmsConfig({ ...cmsConfig, heroSlides: temp });
+                            }}
+                            className="flex-1 bg-black/40 border border-[#2a2a2a] p-2 text-xs rounded-lg font-medium text-white"
+                          />
+                          <label className="p-2 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs rounded-lg transition-all cursor-pointer flex items-center justify-center border border-white/5 shrink-0">
+                            <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e.target.files[0], "heroSlide", i)}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[8px] font-black text-gray-400 uppercase">Description Alt Tag</span>
+                        <input
+                          type="text"
+                          value={slide.alt || ""}
+                          onChange={(e) => {
+                            const temp = [...cmsConfig.heroSlides];
+                            temp[i].alt = e.target.value;
+                            setCmsConfig({ ...cmsConfig, heroSlides: temp });
+                          }}
+                          className="bg-black/40 border border-[#2a2a2a] p-2 text-xs rounded-lg font-medium text-white"
+                        />
+                      </div>
+                    </div>
+                    {slide.img && (
+                      <img src={slide.img} alt="Preview" className="h-12 w-12 object-contain bg-white/5 rounded p-0.5" />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={handleSaveCmsConfig}
+                  disabled={saving}
+                  className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
+                >
+                  Save Carousel Slides
                 </button>
               </div>
             </div>
@@ -564,18 +740,32 @@ export default function SuperAdminDashboard() {
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[8px] font-black text-gray-400 uppercase">Image Asset Path</span>
-                        <input
-                          type="text"
-                          value={dish.image}
-                          onChange={(e) => {
-                            const temp = [...cmsSpecials];
-                            temp[i].image = e.target.value;
-                            setCmsSpecials(temp);
-                          }}
-                          className="bg-black/40 border border-[#2a2a2a] p-2 text-xs rounded-lg font-medium text-white"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={dish.image}
+                            onChange={(e) => {
+                              const temp = [...cmsSpecials];
+                              temp[i].image = e.target.value;
+                              setCmsSpecials(temp);
+                            }}
+                            className="flex-1 bg-black/40 border border-[#2a2a2a] p-2 text-xs rounded-lg font-medium text-white"
+                          />
+                          <label className="p-2 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs rounded-lg transition-all cursor-pointer flex items-center justify-center border border-white/5 shrink-0">
+                            <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e.target.files[0], "special", i)}
+                            />
+                          </label>
+                        </div>
                       </div>
                     </div>
+                    {dish.image && (
+                      <img src={dish.image} alt="Preview" className="h-10 w-10 object-cover rounded-lg bg-white/5" />
+                    )}
                     <button
                       onClick={() => {
                         const temp = cmsSpecials.filter((_, idx) => idx !== i);
@@ -635,16 +825,27 @@ export default function SuperAdminDashboard() {
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[8px] font-black text-gray-400 uppercase">Thumbnail URL</span>
-                        <input
-                          type="text"
-                          value={vid.thumbnail}
-                          onChange={(e) => {
-                            const temp = [...cmsVideos];
-                            temp[i].thumbnail = e.target.value;
-                            setCmsVideos(temp);
-                          }}
-                          className="bg-black/40 border border-[#2a2a2a] p-2 text-xs rounded-lg font-medium text-white"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={vid.thumbnail}
+                            onChange={(e) => {
+                              const temp = [...cmsVideos];
+                              temp[i].thumbnail = e.target.value;
+                              setCmsVideos(temp);
+                            }}
+                            className="flex-1 bg-black/40 border border-[#2a2a2a] p-2 text-xs rounded-lg font-medium text-white"
+                          />
+                          <label className="p-2 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs rounded-lg transition-all cursor-pointer flex items-center justify-center border border-white/5 shrink-0">
+                            <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e.target.files[0], "video", i)}
+                            />
+                          </label>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[8px] font-black text-gray-400 uppercase">YouTube Embed link</span>
@@ -660,6 +861,9 @@ export default function SuperAdminDashboard() {
                         />
                       </div>
                     </div>
+                    {vid.thumbnail && (
+                      <img src={vid.thumbnail} alt="Preview" className="h-10 w-10 object-cover rounded-lg bg-white/5" />
+                    )}
                     <button
                       onClick={() => {
                         const temp = cmsVideos.filter((_, idx) => idx !== i);
