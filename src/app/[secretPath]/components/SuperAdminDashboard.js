@@ -216,36 +216,28 @@ export default function SuperAdminDashboard() {
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       const filePath = `uploads/${fileName}`;
 
-      // Upload file to Supabase storage 'assets' bucket
-      const { data, error } = await supabase.storage
-        .from("assets")
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      // Upload file via secure server-side API endpoint
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("filePath", filePath);
 
-      if (error) {
-        // If bucket doesn't exist, try creating it and retry
-        if (error.message.includes("not found") || error.message.includes("does not exist") || error.message.includes("Bucket not found")) {
-          logAction("Bucket 'assets' not found. Attempting to create it...");
-          const { error: createErr } = await supabase.storage.createBucket("assets", { public: true });
-          if (createErr) {
-            throw new Error(`Failed to automatically create 'assets' bucket: ${createErr.message}. Please create a public bucket named 'assets' in your Supabase Dashboard.`);
-          }
-          logAction("Bucket 'assets' created successfully. Retrying upload...");
-          
-          const { data: retryData, error: retryErr } = await supabase.storage
-            .from("assets")
-            .upload(filePath, file);
-          if (retryErr) throw retryErr;
-        } else {
-          throw error;
-        }
+      const pin = sessionStorage.getItem("vellari_admin_pin") || "";
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${pin}`
+        },
+        body: formData
+      });
+
+      const resData = await res.json();
+
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || "Failed to upload file to storage.");
       }
 
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage.from("assets").getPublicUrl(filePath);
-      const publicUrl = publicUrlData.publicUrl;
+      const publicUrl = resData.publicUrl;
       logAction(`SUCCESS: Uploaded ${file.name} -> ${publicUrl}`);
 
       // Update state dynamically based on what was uploaded
