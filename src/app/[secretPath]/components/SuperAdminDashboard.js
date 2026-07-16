@@ -43,9 +43,64 @@ export default function SuperAdminDashboard() {
   const [purgeConfirmText, setPurgeConfirmText] = useState("");
   const lastScrollYRef = useRef(0);
 
+  // Authentication States
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState(false);
+
+  // Check auth on mount
   useEffect(() => {
-    fetchDashboardData();
+    const savedAuth = sessionStorage.getItem("vellari_admin_auth");
+    if (savedAuth === "true") {
+      setIsAuthenticated(true);
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  // Fetch stats & CMS when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDashboardData();
+    }
+  }, [isAuthenticated]);
+
+  const handleKeypadPress = (num) => {
+    setPinError(false);
+    if (pin.length < 4) {
+      setPin((prev) => prev + num);
+    }
+  };
+
+  const handleKeypadClear = () => {
+    setPin("");
+    setPinError(false);
+  };
+
+  const handlePinSubmit = async (e) => {
+    e?.preventDefault();
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, type: "admin" })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        setPinError(false);
+        sessionStorage.setItem("vellari_admin_auth", "true");
+        sessionStorage.setItem("vellari_admin_pin", pin);
+      } else {
+        setPinError(true);
+        setPin("");
+      }
+    } catch (err) {
+      console.error("Login verification error:", err);
+      alert("Verification server error. Please try again.");
+      setPin("");
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -330,6 +385,71 @@ export default function SuperAdminDashboard() {
         <div className="flex flex-col items-center gap-3">
           <span className="material-symbols-outlined text-4xl text-[#156734] animate-spin">sync</span>
           <span className="text-sm font-semibold tracking-wider">LOADING SUPERADMIN DATA...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // --- PIN ACCESS WALL ---
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#111111] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none font-sans">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#156734]/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="max-w-xs w-full flex flex-col items-center gap-6 z-10 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-[#156734] flex items-center justify-center shadow-lg mb-2">
+            <span className="material-symbols-outlined text-white text-3xl font-bold">shield_person</span>
+          </div>
+          
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-base font-black tracking-widest uppercase text-[#156734]">SUPERADMIN PANEL</h1>
+            <p className="text-[10px] font-bold text-white/40 tracking-wider">ENTER 4-DIGIT ADMIN PIN TO ACCESS</p>
+          </div>
+
+          <div className="flex justify-center gap-4 py-4">
+            {[0, 1, 2, 3].map((index) => (
+              <div
+                key={index}
+                className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-200 ${
+                  pinError
+                    ? "border-red-500 bg-red-500/30 animate-pulse"
+                    : index < pin.length
+                    ? "border-[#156734] bg-[#156734]"
+                    : "border-white/10 bg-transparent"
+                }`}
+              ></div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 w-full">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <button
+                key={num}
+                onClick={() => handleKeypadPress(num.toString())}
+                className="aspect-square bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 transition-all rounded-2xl flex items-center justify-center text-xl font-bold active:scale-95 cursor-pointer"
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              onClick={handleKeypadClear}
+              className="aspect-square bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-red-400 active:scale-95 uppercase cursor-pointer"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => handleKeypadPress("0")}
+              className="aspect-square bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 transition-all rounded-2xl flex items-center justify-center text-xl font-bold active:scale-95 cursor-pointer"
+            >
+              0
+            </button>
+            <button
+              onClick={() => handlePinSubmit()}
+              className="aspect-square bg-[#156734] hover:bg-[#0f4d27] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-white active:scale-95 uppercase cursor-pointer"
+            >
+              Enter
+            </button>
+          </div>
         </div>
       </div>
     );
