@@ -579,24 +579,11 @@ export default function MenuPage() {
                      <input
                       type="tel"
                       ref={phoneInputRef}
-                      defaultValue={customerPhone}
                       autoComplete="off"
                       autoCorrect="off"
                       spellCheck="false"
-                      onChange={(e) => {
-                        if (e.target.value.trim() !== "") setPhoneError(false);
-                      }}
-                      onBlur={async (e) => {
-                        const val = e.target.value;
-                        setCustomerPhone(val);
-                        const clean = val.trim().replace(/\s+/g, "");
-                        if (!clean) return;
-                        const { data } = await supabase
-                          .from("customers")
-                          .select("phone")
-                          .eq("phone", clean)
-                          .single();
-                        setIsNewUser(!data);
+                      onChange={() => {
+                        setPhoneError(false);
                       }}
                       placeholder="e.g. +971568867131"
                       className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
@@ -712,10 +699,29 @@ export default function MenuPage() {
                         return;
                       }
 
+                      setIsSubmitting(true);
+
+                      // Check if new user
+                      let isNew = false;
+                      const cleanPhone = currentPhone.trim().replace(/\s+/g, "");
+                      if (cleanPhone) {
+                        try {
+                          const { data } = await supabase
+                            .from("customers")
+                            .select("phone")
+                            .eq("phone", cleanPhone)
+                            .single();
+                          isNew = !data;
+                        } catch (e) {
+                          isNew = true; // Fallback to safe check
+                        }
+                      }
+
                       // 2. GPS Pin & Delivery Radius validation for delivery
                       if (orderType === "delivery") {
-                        if (isNewUser && !address) {
+                        if (isNew && !address) {
                           alert("GPS location pin is mandatory for new customers. Please click the GPS location 'PIN' button.");
+                          setIsSubmitting(false);
                           return;
                         }
 
@@ -731,6 +737,7 @@ export default function MenuPage() {
                               const limitDisplay = maxRadius < 1 ? `${Math.round(maxRadius * 1000)} meters` : `${maxRadius.toFixed(1)} km`;
                               const distanceDisplay = distance < 1 ? `${Math.round(distance * 1000)} meters` : `${distance.toFixed(1)} km`;
                               alert(`Sorry, your location is ${distanceDisplay} away. Our delivery limit is ${limitDisplay}.`);
+                              setIsSubmitting(false);
                               return;
                             }
                           }
@@ -738,6 +745,7 @@ export default function MenuPage() {
 
                         if (!addressDetails.trim()) {
                           setAddressError(true);
+                          setIsSubmitting(false);
                           return;
                         }
                       }
@@ -746,6 +754,7 @@ export default function MenuPage() {
                       const currentDetails = addressDetailsRef.current ? addressDetailsRef.current.value : addressDetails;
                       if (orderType === "delivery" && currentDetails.trim() === "") {
                         setAddressError(true);
+                        setIsSubmitting(false);
                         return;
                       }
                       setAddressDetails(currentDetails);
