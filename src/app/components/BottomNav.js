@@ -46,8 +46,16 @@ export default function BottomNav() {
     router.push(path);
   };
 
-  // Hide BottomNav on superadmin, admin, kitchen screens
-  const isDashboardRoute = pathname.includes("superadmin") || pathname.includes("office") || pathname.includes("kitchen");
+  // Hide BottomNav on superadmin, admin, kitchen screens using client-accessible environment variables
+  const STAFF_PATH = process.env.NEXT_PUBLIC_STAFF_PATH || "kitchen";
+  const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH || "office";
+  const SUPERADMIN_PATH = process.env.NEXT_PUBLIC_SUPERADMIN_PATH || "superadmin";
+
+  const isDashboardRoute = 
+    pathname.includes(`/${STAFF_PATH}`) || 
+    pathname.includes(`/${ADMIN_PATH}`) || 
+    pathname.includes(`/${SUPERADMIN_PATH}`);
+
   if (isDashboardRoute) return null;
 
   return (
