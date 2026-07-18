@@ -40,6 +40,7 @@ export default function MenuPage() {
   const [unavailableItems, setUnavailableItems] = useState([]);
   const [unavailableCategories, setUnavailableCategories] = useState([]);
   const addressDetailsRef = useRef("");
+  const phoneInputRef = useRef(null);
 
   useEffect(() => {
     if (isCartOpen) {
@@ -563,15 +564,17 @@ export default function MenuPage() {
                     <label className="text-[8px] font-black text-[#156734]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       WhatsApp Phone Number *
                     </label>
-                    <input
+                     <input
                       type="tel"
-                      value={customerPhone}
+                      ref={phoneInputRef}
+                      defaultValue={customerPhone}
                       onChange={(e) => {
-                        setCustomerPhone(e.target.value);
                         if (e.target.value.trim() !== "") setPhoneError(false);
                       }}
-                      onBlur={async () => {
-                        const clean = customerPhone.trim().replace(/\s+/g, "");
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        setCustomerPhone(val);
+                        const clean = val.trim().replace(/\s+/g, "");
                         if (!clean) return;
                         const { data } = await supabase
                           .from("customers")
@@ -688,7 +691,8 @@ export default function MenuPage() {
                     disabled={isSubmitting}
                     onClick={async () => {
                       // 1. Phone number validation
-                      if (!customerPhone.trim()) {
+                      const currentPhone = phoneInputRef.current ? phoneInputRef.current.value : customerPhone;
+                      if (!currentPhone.trim()) {
                         setPhoneError(true);
                         return;
                       }
@@ -743,7 +747,7 @@ export default function MenuPage() {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            customerPhone,
+                            customerPhone: currentPhone,
                             items: formattedItems,
                             total: getCartSubtotal(),
                             orderType,

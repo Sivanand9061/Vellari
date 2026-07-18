@@ -29,6 +29,8 @@ export default function BottomNav() {
     }
   };
 
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
   useEffect(() => {
     updateStats();
 
@@ -36,9 +38,25 @@ export default function BottomNav() {
     window.addEventListener("vellari_cart_updated", updateStats);
     window.addEventListener("storage", updateStats);
 
+    // Detect virtual keyboard by tracking focus on text input elements
+    const handleFocusIn = (e) => {
+      const tagName = e.target.tagName;
+      if (tagName === "INPUT" || tagName === "TEXTAREA") {
+        setIsKeyboardOpen(true);
+      }
+    };
+    const handleFocusOut = () => {
+      setIsKeyboardOpen(false);
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
     return () => {
       window.removeEventListener("vellari_cart_updated", updateStats);
       window.removeEventListener("storage", updateStats);
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
     };
   }, []);
 
@@ -56,7 +74,7 @@ export default function BottomNav() {
     pathname.includes(`/${ADMIN_PATH}`) || 
     pathname.includes(`/${SUPERADMIN_PATH}`);
 
-  if (isDashboardRoute) return null;
+  if (isDashboardRoute || isKeyboardOpen) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 pointer-events-none">
