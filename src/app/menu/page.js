@@ -45,11 +45,23 @@ export default function MenuPage() {
   useEffect(() => {
     if (isCartOpen) {
       setIsAnimating(true);
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.overflow = "hidden";
+
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => {
         clearTimeout(timer);
+        const savedScrollY = document.body.style.top;
+        document.body.style.position = "";
+        document.body.style.width = "";
+        document.body.style.top = "";
         document.body.style.overflow = "";
+        if (savedScrollY) {
+          window.scrollTo(0, parseInt(savedScrollY, 10) * -1);
+        }
       };
     }
   }, [isCartOpen]);
@@ -568,6 +580,9 @@ export default function MenuPage() {
                       type="tel"
                       ref={phoneInputRef}
                       defaultValue={customerPhone}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck="false"
                       onChange={(e) => {
                         if (e.target.value.trim() !== "") setPhoneError(false);
                       }}
