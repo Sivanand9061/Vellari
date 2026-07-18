@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
+import BottomNav from "./components/BottomNav";
 import "./globals.css";
 
 export const metadata = {
@@ -64,8 +65,9 @@ export default function RootLayout({ children }) {
           </>
         )}
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#fffcf2]">
         {children}
+        <BottomNav />
         <Analytics />
       </body>
     </html>

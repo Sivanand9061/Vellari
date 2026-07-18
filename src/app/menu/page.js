@@ -45,80 +45,39 @@ export default function MenuPage() {
     if (isCartOpen) {
       setIsAnimating(true);
       document.body.style.overflow = "hidden";
-      const timer = setTimeout(() => setIsAnimating(false), 500);
+      const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => {
         clearTimeout(timer);
         document.body.style.overflow = "";
       };
-    } else {
-      setIsAnimating(false);
-      document.body.style.overflow = "";
     }
   }, [isCartOpen]);
 
-  // Check for active order on mount and subscribe in real-time
+  // Handle BottomNav custom events to toggle cart
   useEffect(() => {
-    const checkActiveOrder = async () => {
-      const savedId = localStorage.getItem("vellari_active_order_id");
-      if (!savedId) return;
-
-      const { data, error } = await supabase
-        .from("orders")
-        .select("status")
-        .eq("id", savedId)
-        .single();
-
-      if (error || !data) {
-        localStorage.removeItem("vellari_active_order_id");
-        return;
-      }
-
-      if (data.status === "completed" || data.status === "cancelled") {
-        localStorage.removeItem("vellari_active_order_id");
-      } else {
-        setActiveOrderId(savedId);
-      }
+    const handleToggleCart = () => {
+      setIsCartOpen((prev) => !prev);
     };
-
-    checkActiveOrder();
-
-    const savedId = localStorage.getItem("vellari_active_order_id");
-    if (!savedId) return;
-
-    const channel = supabase
-      .channel(`menu-active-order-${savedId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${savedId}` },
-        (payload) => {
-          if (payload.new) {
-            const status = payload.new.status;
-            if (status === "completed" || status === "cancelled") {
-              localStorage.removeItem("vellari_active_order_id");
-              setActiveOrderId(null);
-            }
-          }
-        }
-      )
-      .subscribe();
-
+    window.addEventListener("vellari_toggle_cart", handleToggleCart);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener("vellari_toggle_cart", handleToggleCart);
     };
   }, []);
 
-  // Fetch settings on mount and listen to updates in real-time
+  // Handle openCart parameter on URL query
   useEffect(() => {
-    const fetchSettings = async () => {
-      // 1. Fetch delivery radius
-      const { data: radiusData } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "deliveryRadius")
-        .single();
-      if (radiusData) setDeliveryRadius(String(radiusData.value));
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("openCart") === "true") {
+        setIsCartOpen(true);
+      }
+    }
+  }, []);
 
-      // 2. Fetch unavailable items
+  // Realtime updates for active order & settings
+  useEffect(() => {
+    // 1. Fetch system settings
+    const fetchSettings = async () => {
       const { data: itemsData } = await supabase
         .from("settings")
         .select("value")
@@ -128,7 +87,6 @@ export default function MenuPage() {
         setUnavailableItems(itemsData.value);
       }
 
-      // 3. Fetch unavailable categories
       const { data: catsData } = await supabase
         .from("settings")
         .select("value")
@@ -136,99 +94,73 @@ export default function MenuPage() {
         .single();
       if (catsData && Array.isArray(catsData.value)) {
         setUnavailableCategories(catsData.value);
-        // If combo is unavailable, set to first available category
-        if (catsData.value.includes("combo")) {
-          const firstAvailable = staticCategories.find(c => !catsData.value.includes(c.id));
-          if (firstAvailable) {
-            setActiveCategory(firstAvailable.id);
-          }
-        }
+      }
+
+      const { data: radiusData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "deliveryRadius")
+        .single();
+      if (radiusData) {
+        setDeliveryRadius(String(radiusData.value));
       }
     };
 
     fetchSettings();
 
-    // Subscribe to settings changes in real-time
+    // 2. Realtime listener for settings table
     const settingsChannel = supabase
       .channel("menu-settings-realtime")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "settings" },
+        { event: "*", schema: "public", table: "settings" },
         (payload) => {
           if (payload.new) {
-            if (payload.new.key === "deliveryRadius") {
-              setDeliveryRadius(String(payload.new.value));
-            }
-            if (payload.new.key === "unavailableItems" && Array.isArray(payload.new.value)) {
-              setUnavailableItems(payload.new.value);
-            }
-            if (payload.new.key === "unavailableCategories" && Array.isArray(payload.new.value)) {
-              setUnavailableCategories(payload.new.value);
-              if (payload.new.value.includes(activeCategory)) {
-                const firstAvailable = staticCategories.find(c => !payload.new.value.includes(c.id));
-                if (firstAvailable) {
-                  setActiveCategory(firstAvailable.id);
-                }
-              }
+            const { key, value } = payload.new;
+            if (key === "unavailableItems" && Array.isArray(value)) {
+              setUnavailableItems(value);
+            } else if (key === "unavailableCategories" && Array.isArray(value)) {
+              setUnavailableCategories(value);
+            } else if (key === "deliveryRadius") {
+              setDeliveryRadius(String(value));
             }
           }
         }
       )
       .subscribe();
 
+    // 3. Monitor active order recovery
+    const savedId = localStorage.getItem("vellari_active_order_id");
+    if (savedId) {
+      setActiveOrderId(savedId);
+
+      const orderChannel = supabase
+        .channel(`menu-active-order-${savedId}`)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${savedId}` },
+          (payload) => {
+            if (payload.new) {
+              const status = payload.new.status;
+              if (status === "completed" || status === "cancelled") {
+                localStorage.removeItem("vellari_active_order_id");
+                setActiveOrderId(null);
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(orderChannel);
+        supabase.removeChannel(settingsChannel);
+      };
+    }
+
     return () => {
       supabase.removeChannel(settingsChannel);
     };
-  }, [activeCategory]);
-
-  const handleShareLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
-    
-    setIsLocating(true);
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        setAddress(mapsLink);
-        setIsLocating(false);
-      },
-      (error) => {
-        setIsLocating(false);
-        console.error("Geolocation error:", error);
-        alert("Could not retrieve exact location. Please ensure location permissions are enabled on your browser/device.");
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  };
-
-  const getCoordinatesFromAddress = (addr) => {
-    if (!addr) return null;
-    const match = addr.match(/q=([-\d.]+),([-\d.]+)/);
-    if (match) {
-      return {
-        lat: parseFloat(match[1]),
-        lng: parseFloat(match[2])
-      };
-    }
-    return null;
-  };
-
-  const getDistanceKm = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Earth radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
+  }, []);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -242,7 +174,10 @@ export default function MenuPage() {
       if (savedCart) setCart(JSON.parse(savedCart));
       if (savedOrderType) setOrderType(savedOrderType);
       if (savedAddress) setAddress(savedAddress);
-      if (savedAddressDetails) setAddressDetails(savedAddressDetails);
+      if (savedAddressDetails) {
+        setAddressDetails(savedAddressDetails);
+        addressDetailsRef.current = savedAddressDetails;
+      }
       if (savedPhone) setCustomerPhone(savedPhone);
     } catch (e) {
       console.error("Failed to load cart from localStorage", e);
@@ -259,6 +194,9 @@ export default function MenuPage() {
       localStorage.setItem("vellari_address", address);
       localStorage.setItem("vellari_address_details", addressDetails);
       localStorage.setItem("vellari_phone", customerPhone);
+      
+      // Dispatch custom event to notify BottomNav
+      window.dispatchEvent(new Event("vellari_cart_updated"));
     } catch (e) {
       console.error("Failed to save cart to localStorage", e);
     }
@@ -268,137 +206,172 @@ export default function MenuPage() {
     return <MaintenancePage />;
   }
 
-  const parsePrice = (priceStr) => {
-    if (priceStr.includes("APS")) return 0;
-    const basePriceStr = priceStr.split("/")[0];
-    const match = basePriceStr.match(/\d+(\.\d+)?/);
-    return match ? parseFloat(match[0]) : 0;
-  };
-
+  // Cart operations
   const addToCart = (item) => {
     setCart((prev) => {
       const existing = prev[item.name];
+      const updated = { ...prev };
       if (existing) {
-        return {
-          ...prev,
-          [item.name]: { ...existing, quantity: existing.quantity + 1 },
+        updated[item.name] = { ...existing, quantity: existing.quantity + 1 };
+      } else {
+        updated[item.name] = {
+          name: item.name,
+          price: item.price,
+          quantity: 1,
         };
       }
-      return {
-        ...prev,
-        [item.name]: { ...item, quantity: 1 },
-      };
+      return updated;
     });
   };
 
-  const removeFromCart = (itemName) => {
+  const removeFromCart = (name) => {
     setCart((prev) => {
-      const existing = prev[itemName];
+      const existing = prev[name];
       if (!existing) return prev;
-      if (existing.quantity <= 1) {
-        const copy = { ...prev };
-        delete copy[itemName];
-        return copy;
+      const updated = { ...prev };
+      if (existing.quantity > 1) {
+        updated[name] = { ...existing, quantity: existing.quantity - 1 };
+      } else {
+        delete updated[name];
       }
-      return {
-        ...prev,
-        [itemName]: { ...existing, quantity: existing.quantity - 1 },
-      };
+      return updated;
     });
   };
 
   const getCartCount = () => {
-    return Object.values(cart).reduce((total, item) => total + item.quantity, 0);
+    return Object.values(cart).reduce((acc, curr) => acc + curr.quantity, 0);
   };
 
   const getCartSubtotal = () => {
-    return Object.values(cart).reduce((total, item) => {
-      const priceVal = parsePrice(item.price);
-      return total + priceVal * item.quantity;
+    return Object.values(cart).reduce((acc, curr) => {
+      const priceStr = curr.price.replace(/[^\d.]/g, "");
+      const priceNum = parseFloat(priceStr);
+      return acc + (isNaN(priceNum) ? 0 : priceNum * curr.quantity);
     }, 0);
   };
 
   const hasVariablePrices = () => {
-    return Object.values(cart).some(item => item.price.includes("/") || item.price.includes("APS"));
+    return Object.values(cart).some((item) => item.price.includes("/"));
   };
 
+  const handleShareLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
 
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setAddress(`${latitude},${longitude}`);
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Location error:", error);
+        alert("Could not retrieve GPS location. Please check your browser permissions.");
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
+  // Distance computation helpers
+  const getCoordinatesFromAddress = (addr) => {
+    if (!addr) return null;
+    const parts = addr.split(",");
+    if (parts.length === 2) {
+      const lat = parseFloat(parts[0]);
+      const lng = parseFloat(parts[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+    return null;
+  };
+
+  const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth radius
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
   const categories = staticCategories;
   const menuData = staticMenuData;
-
   const filteredItems = menuData[activeCategory] || [];
 
   return (
-    <div className={`min-h-screen bg-brandDark text-white font-sans antialiased transition-all duration-300 ${getCartCount() > 0 ? "pb-28" : "pb-24"}`}>
-      {/* Top Header */}
-      <header className="sticky top-0 z-50 bg-brandDark/95 backdrop-blur-md border-b border-brandGreen/25 h-20">
-        <div className="max-w-4xl mx-auto px-6 h-full flex justify-between items-center">
-          {/* Logo on Left */}
-          <Link href="/" className="flex items-center cursor-pointer">
-            <img
-              src="/logo_english.png"
-              alt="Vellari Karama"
-              className="h-10 md:h-12 w-auto object-contain mix-blend-screen"
-            />
+    <div className="min-h-screen bg-[#fffcf2] text-[#156734] font-sans pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-[#fffcf2]/95 backdrop-blur-md border-b border-[#e5dbb2]/30 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center">
+            <span
+              className="text-[#156734] font-black text-xl tracking-tight uppercase"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Vellari
+            </span>
           </Link>
-
-          {/* Actions on Right */}
-          <div className="flex items-center gap-6">
-            {/* Back Home Link */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm font-bold text-white/80 hover:text-white transition-colors duration-300"
-            >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-              BACK
-            </Link>
-
-            {/* Cart Button */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative inline-flex items-center gap-2 text-sm font-bold text-brandGold hover:text-white transition-colors duration-300 cursor-pointer focus:outline-none"
-            >
-              <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
-              <span>CART</span>
-              {getCartCount() > 0 && (
-                <span className="absolute -top-1.5 -right-2.5 bg-brandGreen text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-brandGold/40 animate-bounce">
-                  {getCartCount()}
-                </span>
-              )}
-            </button>
-          </div>
         </div>
+
+        <button
+          onClick={() => setIsCartOpen(true)}
+          className="relative inline-flex items-center gap-1.5 text-xs font-black text-[#156734] hover:opacity-75 transition-opacity duration-300 cursor-pointer focus:outline-none"
+          style={{ fontFamily: "Montserrat, sans-serif" }}
+        >
+          <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
+          <span>CART</span>
+          {getCartCount() > 0 && (
+            <span className="absolute -top-1.5 -right-2 bg-[#156734] text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[#fffcf2]">
+              {getCartCount()}
+            </span>
+          )}
+        </button>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-6 pt-12">
-        {/* Malayalam Title Logo Banner */}
-        <div className="flex flex-col items-center mb-12">
+      <main className="max-w-md mx-auto px-5 pt-8">
+        {/* Title Logo Banner */}
+        <div className="flex flex-col items-center mb-6">
           <img
             src="/logo_malayalam.png"
             alt="വെള്ളരി"
-            className="h-20 md:h-24 w-auto object-contain mix-blend-screen mb-4 animate-fade-in"
+            className="h-14 w-auto object-contain mb-2 opacity-90"
+            style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
           />
-          <h1 className="text-3xl font-black text-brandGold tracking-wider uppercase text-center">MENU</h1>
-          <div className="w-16 h-1 bg-brandGreen mt-3 rounded-full"></div>
+          <h1
+            className="text-lg font-black text-[#156734] tracking-widest uppercase text-center"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            MENU
+          </h1>
+          <div className="w-8 h-0.5 bg-[#156734]/30 mt-1.5 rounded-full"></div>
         </div>
 
-        {/* Category Tabs (Scrollable horizontally on small screens) */}
-        <div className="flex overflow-x-auto gap-2 pb-4 mb-12 scrollbar-none justify-start md:justify-center -mx-6 px-6">
-          <div className="flex gap-2">
+        {/* Category Tabs */}
+        <div className="flex overflow-x-auto gap-1.5 pb-3 mb-6 scrollbar-none -mx-5 px-5">
+          <div className="flex gap-1.5">
             {categories
               .filter((cat) => !unavailableCategories.includes(cat.id))
               .map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`px-4 py-2.5 rounded-full text-[10px] font-black tracking-widest uppercase transition-all duration-300 border whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all duration-300 border whitespace-nowrap cursor-pointer ${
                     activeCategory === cat.id
-                      ? "bg-brandGreen border-brandGold text-white shadow-md"
-                      : "bg-transparent border-white/20 text-white/70 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#156734] border-transparent text-white shadow-sm"
+                      : "bg-transparent border-[#156734]/15 text-[#156734]/70 hover:bg-[#156734]/5"
                   }`}
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   {cat.name}
                 </button>
@@ -406,59 +379,52 @@ export default function MenuPage() {
           </div>
         </div>
 
-        {/* Compact Minimalist Menu Items List (Clean compact rows, no cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+        {/* Compact Grid Layout */}
+        <div className="grid grid-cols-1 gap-2.5 mb-24">
           {filteredItems.map((item, index) => {
             const isSoldOut = unavailableItems.includes(item.name);
             return (
               <div
                 key={index}
-                className={`flex justify-between items-center py-2.5 border-b border-white/5 group hover:border-brandGreen/40 transition-colors ${
+                className={`flex items-center justify-between p-3.5 rounded-2xl bg-[#fffcf2] border border-[#e5dbb2]/45 shadow-[0px_4px_12px_rgba(21,103,52,0.02)] hover:border-[#156734]/20 hover:shadow-[0px_6px_16px_rgba(21,103,52,0.06)] transition-all duration-300 ${
                   isSoldOut ? "opacity-60" : ""
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-[9px] font-bold bg-white/5 px-2 py-0.5 rounded text-gray-400 uppercase tracking-widest">
+                <div className="flex-1 min-w-0 mr-3 text-left">
+                  <span
+                    className="text-[7px] font-black text-[#156734]/40 uppercase tracking-widest block mb-0.5"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
                     {item.section}
                   </span>
-                  <span className={`text-xs font-bold text-white/90 transition-colors ${
-                    isSoldOut ? "line-through text-white/50" : "group-hover:text-brandGold"
-                  }`}>
+                  <p
+                    className="text-[#156734] font-bold text-xs uppercase truncate"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
                     {item.name}
-                  </span>
+                  </p>
+                  <p
+                    className="text-[#156734]/85 font-black text-xs mt-0.5"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
+                    AED {item.price.replace(/[^\d.]/g, "")}
+                  </p>
                 </div>
-                <div className="flex items-center gap-3.5 ml-4 flex-shrink-0">
-                  <span className={`text-xs font-black ${isSoldOut ? "text-white/40" : "text-brandGold"}`}>
-                    {item.price}
-                  </span>
+
+                <div className="shrink-0">
                   {isSoldOut ? (
-                    <span className="text-[9px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    <span
+                      className="text-[8px] text-red-600 font-bold uppercase tracking-widest px-2.5 py-1 bg-red-500/10 rounded-lg"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
                       Sold Out
                     </span>
-                  ) : cart[item.name] ? (
-                    <div className="flex items-center gap-2 bg-brandGreen/40 border border-brandGold/35 rounded-full px-2 py-0.5 select-none">
-                      <button
-                        onClick={() => removeFromCart(item.name)}
-                        className="text-xs font-black text-white hover:text-brandGold px-1.5 transition-colors focus:outline-none"
-                      >
-                        −
-                      </button>
-                      <span className="text-[11px] font-black text-white min-w-[12px] text-center">
-                        {cart[item.name].quantity}
-                      </span>
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="text-xs font-black text-white hover:text-brandGold px-1.5 transition-colors focus:outline-none"
-                      >
-                        +
-                      </button>
-                    </div>
                   ) : (
                     <button
                       onClick={() => addToCart(item)}
-                      className="text-[10px] font-black text-brandDark bg-brandGold hover:bg-brandGoldDark hover:scale-105 active:scale-95 px-2.5 py-0.5 rounded-full tracking-wider uppercase transition-all duration-200 focus:outline-none cursor-pointer"
+                      className="w-7 h-7 bg-[#156734] hover:bg-[#0f4d27] text-white rounded-lg flex items-center justify-center transition-all duration-300 active:scale-90 cursor-pointer shadow-md"
                     >
-                      ADD
+                      <span className="material-symbols-outlined text-[15px] font-bold">add</span>
                     </button>
                   )}
                 </div>
@@ -468,84 +434,108 @@ export default function MenuPage() {
         </div>
       </main>
 
-
-      {/* Floating View Cart Pill (Visible only when drawer is closed and cart has items) */}
+      {/* Floating View Cart Pill */}
       {!isCartOpen && getCartCount() > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 w-full max-w-xs px-4">
           <button
             onClick={() => setIsCartOpen(true)}
-            className="w-full flex justify-between items-center px-6 py-4 bg-brandGreen hover:bg-brandGreenDark text-white rounded-full shadow-2xl border border-brandGold/40 transition-all duration-300 hover:scale-103 active:scale-97 cursor-pointer"
+            className="w-full flex justify-between items-center px-5 py-3.5 bg-[#156734] hover:bg-[#0f4d27] text-white rounded-xl shadow-2xl transition-all duration-300 hover:scale-102 active:scale-98 cursor-pointer border border-[#fffcf2]/10"
           >
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-[20px] text-brandGold">shopping_cart</span>
-              <span className="text-xs font-black tracking-wider uppercase">VIEW CART ({getCartCount()})</span>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
+              <span className="text-[10px] font-black tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                VIEW CART ({getCartCount()})
+              </span>
             </div>
-            <span className="text-xs font-black text-brandGold">
+            <span className="text-xs font-black" style={{ fontFamily: "Montserrat, sans-serif" }}>
               AED {getCartSubtotal().toFixed(2)}{hasVariablePrices() && "*"}
             </span>
           </button>
         </div>
       )}
 
-      {/* Cart Side Drawer Modal */}
+      {/* Cart Bottom Sheet Slide Up Panel */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
           {/* Backdrop overlay */}
           <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setIsCartOpen(false)}
           />
 
-          {/* Drawer Panel */}
-          <div className={`relative w-full max-w-md bg-brandDark border-l border-brandGreen/25 h-full flex flex-col shadow-2xl z-10 ${isAnimating ? "animate-fade-in" : ""}`}>
+          {/* Bottom Sheet Drawer */}
+          <div
+            className={`relative w-full max-w-md bg-[#fffcf2] border-t border-[#e5dbb2]/65 rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl z-10 ${
+              isAnimating ? "animate-scaleUp" : ""
+            }`}
+          >
+            {/* Grab Handle */}
+            <div className="w-full flex justify-center py-2 shrink-0">
+              <div className="w-12 h-1 bg-[#156734]/15 rounded-full"></div>
+            </div>
+
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-5 border-b border-white/10 flex-shrink-0">
+            <div className="flex justify-between items-center px-5 pb-3.5 border-b border-[#e5dbb2]/30 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-brandGold text-[20px]">shopping_cart</span>
-                <h3 className="text-sm font-black text-white tracking-widest uppercase">Your Cart</h3>
+                <span className="material-symbols-outlined text-[#156734] text-[18px]">shopping_cart</span>
+                <h3 className="text-xs font-black text-[#156734] tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  Your Order
+                </h3>
               </div>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="text-white/60 hover:text-white cursor-pointer"
+                className="text-[#156734]/60 hover:text-[#156734] cursor-pointer"
               >
-                <span className="material-symbols-outlined">close</span>
+                <span className="material-symbols-outlined text-[19px]">close</span>
               </button>
             </div>
 
             {/* Scrollable Body Container */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
+            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-5">
               
               {/* Cart Items List */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
                 {Object.values(cart).length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-center">
-                    <span className="material-symbols-outlined text-white/20 text-5xl mb-4">shopping_cart_off</span>
-                    <p className="text-xs text-white/50 font-bold uppercase tracking-wider">Your cart is empty</p>
+                  <div className="flex flex-col items-center justify-center py-14 text-center">
+                    <span className="material-symbols-outlined text-[#156734]/15 text-4xl mb-2">shopping_cart_off</span>
+                    <p className="text-[10px] text-[#156734]/50 font-bold uppercase tracking-widest" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                      Your cart is empty
+                    </p>
                     <button
                       onClick={() => setIsCartOpen(false)}
-                      className="mt-4 text-xs font-black text-brandGold hover:underline cursor-pointer"
+                      className="mt-2 text-xs font-black text-[#156734] hover:underline cursor-pointer"
                     >
                       Browse Menu
                     </button>
                   </div>
                 ) : (
                   Object.values(cart).map((item) => (
-                    <div key={item.name} className="flex justify-between items-center py-3.5 border-b border-white/5">
-                      <div className="flex flex-col gap-0.5 max-w-[60%]">
-                        <span className="text-xs font-black text-white/90">{item.name}</span>
-                        <span className="text-[10px] text-brandGold font-bold">{item.price} each</span>
+                    <div
+                      key={item.name}
+                      className="flex justify-between items-center py-3 border-b border-[#e5dbb2]/30"
+                    >
+                      <div className="flex flex-col text-left max-w-[60%]">
+                        <span className="text-xs font-bold text-[#156734] uppercase truncate" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                          {item.name}
+                        </span>
+                        <span className="text-[9px] text-[#156734]/60 font-semibold" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                          AED {item.price.replace(/[^\d.]/g, "")} each
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-2.5 py-1">
+                      
+                      <div className="flex items-center gap-3 bg-[#156734]/5 border border-[#156734]/10 rounded-xl px-2.5 py-1">
                         <button
                           onClick={() => removeFromCart(item.name)}
-                          className="text-xs font-black text-white/70 hover:text-white px-1.5 cursor-pointer focus:outline-none"
+                          className="text-xs font-black text-[#156734]/70 hover:text-[#156734] px-1 cursor-pointer focus:outline-none"
                         >
                           −
                         </button>
-                        <span className="text-xs font-black text-white min-w-[12px] text-center">{item.quantity}</span>
+                        <span className="text-xs font-black text-[#156734] min-w-[10px] text-center" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                          {item.quantity}
+                        </span>
                         <button
                           onClick={() => addToCart(item)}
-                          className="text-xs font-black text-white/70 hover:text-white px-1.5 cursor-pointer focus:outline-none"
+                          className="text-xs font-black text-[#156734]/70 hover:text-[#156734] px-1 cursor-pointer focus:outline-none"
                         >
                           +
                         </button>
@@ -557,18 +547,20 @@ export default function MenuPage() {
 
               {/* Checkout Controls */}
               {Object.values(cart).length > 0 && (
-                <div className="border-t border-white/10 pt-6 flex flex-col gap-4">
+                <div className="border-t border-[#e5dbb2]/30 pt-4 flex flex-col gap-4">
                   {/* Items Count & Subtotal */}
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-white/70 font-medium">Subtotal ({getCartCount()} items)</span>
-                    <span className="text-base font-black text-brandGold">
+                    <span className="text-[10px] text-[#156734]/60 font-bold uppercase tracking-wider" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                      Subtotal ({getCartCount()} items)
+                    </span>
+                    <span className="text-sm font-black text-[#156734]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       AED {getCartSubtotal().toFixed(2)}{hasVariablePrices() && "*"}
                     </span>
                   </div>
 
                   {/* Phone Number Input */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
+                  <div className="flex flex-col gap-1 text-left">
+                    <label className="text-[8px] font-black text-[#156734]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       WhatsApp Phone Number *
                     </label>
                     <input
@@ -589,23 +581,23 @@ export default function MenuPage() {
                         setIsNewUser(!data);
                       }}
                       placeholder="e.g. +971568867131"
-                      className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-base text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
-                        phoneError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
+                      className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-sm text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
+                        phoneError ? "border-red-500 bg-red-500/5 focus:border-red-500" : "border-[#e5dbb2]"
                       }`}
                     />
                     {phoneError && (
-                      <span className="text-[10px] font-black text-red-400 tracking-wider">
+                      <span className="text-[8px] font-black text-red-500 tracking-wider" style={{ fontFamily: "Montserrat, sans-serif" }}>
                         Please enter your phone number to receive confirmation.
                       </span>
                     )}
                   </div>
 
                   {/* Order Type Toggle Selector */}
-                  <div className="grid grid-cols-3 gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                  <div className="grid grid-cols-3 gap-1 p-0.5 bg-[#156734]/5 rounded-xl border border-[#156734]/10">
                     {[
                       { id: "delivery", label: "Delivery 🚗" },
                       { id: "takeaway", label: "Takeaway 🛍️" },
-                      { id: "dine-in", label: "Dine-In 🍽️" }
+                      { id: "dine-in", label: "Dine-In 🍽️" },
                     ].map((type) => (
                       <button
                         key={type.id}
@@ -613,11 +605,12 @@ export default function MenuPage() {
                           setOrderType(type.id);
                           if (type.id !== "delivery") setAddressError(false);
                         }}
-                        className={`py-2 rounded-lg text-[9px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                        className={`py-1.5 rounded-lg text-[8px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                           orderType === type.id
-                            ? "bg-brandGreen text-white shadow-md border border-brandGold/20"
-                            : "text-white/60 hover:text-white hover:bg-white/5"
+                            ? "bg-[#156734] text-white shadow-sm"
+                            : "text-[#156734]/60 hover:bg-[#156734]/5"
                         }`}
+                        style={{ fontFamily: "Montserrat, sans-serif" }}
                       >
                         {type.label}
                       </button>
@@ -626,12 +619,14 @@ export default function MenuPage() {
 
                   {/* Dynamic Delivery Address Input */}
                   {orderType === "delivery" && (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-2.5 text-left">
                       {/* Geolocation Section */}
-                      <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10 gap-3">
+                      <div className="flex items-center justify-between p-2.5 bg-[#156734]/5 rounded-xl border border-[#156734]/10 gap-3">
                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                          <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">GPS LOCATION</span>
-                          <span className="text-[9px] text-white/70 truncate font-mono">
+                          <span className="text-[8px] font-black text-[#156734]/50 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                            GPS LOCATION
+                          </span>
+                          <span className="text-[9px] text-[#156734] truncate font-mono">
                             {address ? address : (isNewUser ? "Location Required (Mandatory for new users)" : "No location pinned (Optional)")}
                           </span>
                         </div>
@@ -639,9 +634,10 @@ export default function MenuPage() {
                           <button
                             type="button"
                             onClick={() => setAddress("")}
-                            className="text-[9px] font-black text-red-400 hover:text-red-300 bg-white/5 border border-red-500/20 hover:border-red-500/40 rounded px-2 py-0.5 cursor-pointer transition-all flex items-center gap-0.5"
+                            className="text-[8px] font-black text-red-500 hover:text-red-600 bg-red-500/5 border border-red-500/20 rounded px-2 py-0.5 cursor-pointer transition-all flex items-center gap-0.5"
+                            style={{ fontFamily: "Montserrat, sans-serif" }}
                           >
-                            <span className="material-symbols-outlined text-[10px]">close</span>
+                            <span className="material-symbols-outlined text-[9px]">close</span>
                             CLEAR
                           </button>
                         ) : (
@@ -649,19 +645,18 @@ export default function MenuPage() {
                             type="button"
                             onClick={handleShareLocation}
                             disabled={isLocating}
-                            className="text-[9px] font-black text-brandGold bg-white/5 border border-brandGold/35 hover:border-brandGold hover:bg-white/10 rounded px-2.5 py-1 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                            className="text-[8px] font-black text-[#156734] bg-white border border-[#156734]/25 hover:border-[#156734] rounded px-2 py-0.5 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                            style={{ fontFamily: "Montserrat, sans-serif" }}
                           >
-                            <span className="material-symbols-outlined text-[10px]">
-                              my_location
-                            </span>
+                            <span className="material-symbols-outlined text-[9px]">my_location</span>
                             {isLocating ? "LOCATING..." : "PIN"}
                           </button>
                         )}
                       </div>
 
                       {/* Building Details */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-black text-brandGold tracking-widest uppercase">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[8px] font-black text-[#156734]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                           Building, Floor & Flat No. *
                         </label>
                         <input
@@ -675,12 +670,12 @@ export default function MenuPage() {
                             setAddressDetails(e.target.value);
                           }}
                           placeholder="e.g. Karama Court, Floor 2, Apt 204"
-                          className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-base text-white placeholder-white/30 focus:outline-none focus:border-brandGold transition-colors ${
-                            addressError ? "border-red-500/80 bg-red-500/5 focus:border-red-500" : "border-white/10"
+                          className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-sm text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
+                            addressError ? "border-red-500 bg-red-500/5 focus:border-red-500" : "border-[#e5dbb2]"
                           }`}
                         />
                         {addressError && (
-                          <span className="text-[10px] font-black text-red-400 tracking-wider">
+                          <span className="text-[8px] font-black text-red-500 tracking-wider" style={{ fontFamily: "Montserrat, sans-serif" }}>
                             Please enter your building details.
                           </span>
                         )}
@@ -721,6 +716,11 @@ export default function MenuPage() {
                             }
                           }
                         }
+
+                        if (!addressDetails.trim()) {
+                          setAddressError(true);
+                          return;
+                        }
                       }
 
                       // 3. Address validation for delivery
@@ -736,7 +736,7 @@ export default function MenuPage() {
                       try {
                         const formattedItems = Object.values(cart).map((item) => ({
                           name: item.name,
-                          quantity: item.quantity
+                          quantity: item.quantity,
                         }));
 
                         const response = await fetch("/api/checkout", {
@@ -748,8 +748,8 @@ export default function MenuPage() {
                             total: getCartSubtotal(),
                             orderType,
                             addressGps: address || null,
-                            addressDetails: orderType === "delivery" ? currentDetails : null
-                          })
+                            addressDetails: orderType === "delivery" ? currentDetails : null,
+                          }),
                         });
 
                         const data = await response.json();
@@ -764,47 +764,21 @@ export default function MenuPage() {
                           alert(data.error || "Failed to place order. Please try again.");
                           setIsSubmitting(false);
                         }
-                      } catch (err) {
-                        console.error("Checkout submission error:", err);
-                        alert("Network error. Please check your internet connection and try again.");
+                      } catch (error) {
+                        console.error("Checkout submission error:", error);
+                        alert("Checkout error. Please try again.");
                         setIsSubmitting(false);
                       }
                     }}
-                    className={`w-full flex items-center justify-center gap-2.5 py-4 text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-lg hover:scale-101 active:scale-99 uppercase cursor-pointer ${
-                      isSubmitting ? "bg-white/10 text-white/40 cursor-not-allowed" : "bg-brandGreen hover:bg-brandGreenDark"
-                    }`}
+                    className="w-full py-3.5 bg-[#156734] hover:bg-[#0f4d27] disabled:bg-[#156734]/50 text-white text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-97 cursor-pointer mt-1"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
-                    <span className="material-symbols-outlined text-base">shopping_cart_checkout</span>
-                    {isSubmitting ? "Placing Order..." : "Place Order Now"}
+                    {isSubmitting ? "PLACING ORDER..." : "PLACE ORDER"}
                   </button>
-                  {hasVariablePrices() && (
-                    <p className="text-[10px] text-white/40 text-center font-medium italic">
-                      * Prices of combos/sizes marked with slashes or &quot;APS&quot; are estimated at base value. Exact bill will be confirmed on WhatsApp.
-                    </p>
-                  )}
                 </div>
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Active Order Recovery Banner */}
-      {activeOrderId && (
-        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-[350px] z-40 bg-brandDark/95 backdrop-blur-md border border-brandGold/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-brandGold text-xl animate-spin">sync</span>
-            <div className="flex flex-col text-left">
-              <span className="text-[9px] font-black text-brandGold tracking-widest uppercase">ACTIVE ORDER</span>
-              <span className="text-[10px] text-white/70 font-bold">Your order is being processed!</span>
-            </div>
-          </div>
-          <Link
-            href={`/order/${activeOrderId}`}
-            className="px-4 py-2 bg-brandGold hover:bg-brandGold/90 text-black text-[9px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
-          >
-            Track
-          </Link>
         </div>
       )}
     </div>
@@ -813,89 +787,23 @@ export default function MenuPage() {
 
 function MaintenancePage() {
   return (
-    <div className="min-h-screen bg-brandDark text-white font-sans flex flex-col justify-between items-center px-6 py-12 relative overflow-hidden select-none">
-      {/* Background radial glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brandGreen/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-brandGold/5 rounded-full blur-[100px] pointer-events-none"></div>
-
-      {/* Header English Logo */}
-      <div className="w-full max-w-6xl flex justify-center md:justify-start items-center z-10">
+    <div className="min-h-screen bg-[#fffcf2] text-[#156734] font-sans flex flex-col justify-center items-center px-6 py-12 relative overflow-hidden select-none">
+      <div className="max-w-md w-full text-center flex flex-col items-center gap-6 z-10">
         <img
-          src="/logo_english.png"
-          alt="Vellari"
-          className="h-10 md:h-12 w-auto object-contain mix-blend-screen"
+          src="/logo_malayalam.png"
+          alt="വെള്ളരി"
+          className="h-16 w-auto object-contain mb-2 opacity-90 animate-pulse"
+          style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
         />
-      </div>
-
-      {/* Main Card Content */}
-      <div className="max-w-md w-full bg-white/2 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-10 text-center shadow-2xl flex flex-col items-center gap-6 z-10">
-        {/* Malayalam logo with pulsing ring */}
-        <div className="relative flex items-center justify-center mb-2">
-          <div className="absolute inset-0 bg-brandGold/20 rounded-full blur-xl animate-pulse"></div>
-          <img
-            src="/logo_malayalam.png"
-            alt="വെള്ളരി"
-            className="h-20 w-auto object-contain mix-blend-screen relative z-10"
-          />
-        </div>
-
-        {/* Status indicator */}
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brandGold/15 border border-brandGold/30 text-brandGold text-[10px] font-black tracking-widest uppercase rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-brandGold animate-ping"></span>
-          Cooking Up Upgrades
-        </span>
-
-        {/* Message */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-wider">
-            Upgrading Our System 🍲
-          </h2>
-          <p className="text-xs text-white/70 leading-relaxed font-medium">
-            We are currently cooking up some exciting digital upgrades to make your ordering experience faster and smoother! We will be back online shortly.
-          </p>
-          <p className="text-xs text-brandGold font-bold leading-relaxed">
-            കൂടുതൽ മികച്ച സേവനങ്ങൾക്കായി ഞങ്ങളുടെ വെബ്സൈറ്റ് അപ്ഗ്രേഡ് ചെയ്യുകയാണ്. ഉടൻ തന്നെ തിരിച്ചെത്തുന്നതാണ്!
-          </p>
-        </div>
-
-        <div className="w-full h-px bg-white/10 my-1"></div>
-
-        {/* Call to Order CTA */}
-        <div className="flex flex-col gap-2.5 w-full">
-          <span className="text-[9px] font-black text-white/50 tracking-widest uppercase">
-            Order directly via call:
-          </span>
-          <a
-            href="tel:+971568867131"
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-brandGreen hover:bg-brandGreenDark text-white text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-md border border-brandGold/20 hover:scale-102 active:scale-98"
-          >
-            <span className="material-symbols-outlined text-[16px] text-brandGold">call</span>
-            +971 56 886 7131
-          </a>
-          <a
-            href="tel:+97148342856"
-            className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white/90 text-[11px] font-bold tracking-widest rounded-xl transition-all border border-white/10"
-          >
-            <span className="material-symbols-outlined text-[14px]">phone_in_talk</span>
-            +971 4 834 2856
-          </a>
-        </div>
-      </div>
-
-      {/* Footer Socials */}
-      <div className="flex flex-col items-center gap-3 z-10">
-        <a
-          href="https://www.instagram.com/vellari_restaurant?igsh=emxoZG9jY3pjM2Z3"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-white/60 hover:text-brandGold transition-colors flex items-center gap-1.5 text-xs font-bold"
+        <h2
+          className="text-lg font-black tracking-wider uppercase text-[#156734]"
+          style={{ fontFamily: "Montserrat, sans-serif" }}
         >
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-          </svg>
-          @vellari_restaurant
-        </a>
-        <p className="text-[10px] text-white/30 font-medium">© 2026 Vellari Karama. All rights reserved.</p>
+          Cooking Up Upgrades 🍲
+        </h2>
+        <p className="text-xs text-[#156734]/70 leading-relaxed font-medium">
+          Our online system is temporarily resting. We are upgrading to serve you better!
+        </p>
       </div>
     </div>
   );
