@@ -584,7 +584,7 @@ export default function MenuPage() {
                         setIsNewUser(!data);
                       }}
                       placeholder="e.g. +971568867131"
-                      className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-sm text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
+                      className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
                         phoneError ? "border-red-500 bg-red-500/5 focus:border-red-500" : "border-[#e5dbb2]"
                       }`}
                     />
@@ -673,7 +673,7 @@ export default function MenuPage() {
                             setAddressDetails(e.target.value);
                           }}
                           placeholder="e.g. Karama Court, Floor 2, Apt 204"
-                          className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-sm text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
+                          className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
                             addressError ? "border-red-500 bg-red-500/5 focus:border-red-500" : "border-[#e5dbb2]"
                           }`}
                         />
