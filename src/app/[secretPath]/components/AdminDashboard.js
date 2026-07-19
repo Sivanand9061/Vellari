@@ -85,7 +85,7 @@ export default function AdminDashboard() {
   const [customCategories, setCustomCategories] = useState([]);
   const [customMenuItems, setCustomMenuItems] = useState([]);
   const [newCatName, setNewCatName] = useState("");
-  const [newDishCat, setNewDishCat] = useState("");
+  const [newDishCat, setNewDishCat] = useState("combo");
   const [newDishName, setNewDishName] = useState("");
   const [newDishPrice, setNewDishPrice] = useState("");
   const [menuSaving, setMenuSaving] = useState(false);
@@ -181,9 +181,6 @@ export default function AdminDashboard() {
       .single();
     if (customCatsData && Array.isArray(customCatsData.value)) {
       setCustomCategories(customCatsData.value);
-      if (customCatsData.value.length > 0 && !newDishCat) {
-        setNewDishCat(customCatsData.value[0]?.id || "");
-      }
     }
 
     // Fetch custom menu items
@@ -489,7 +486,8 @@ export default function AdminDashboard() {
     }
     setMenuSaving(true);
     try {
-      const cat = customCategories.find((c) => c.id === catId);
+      const allCats = [...categories, ...customCategories];
+      const cat = allCats.find((c) => c.id === catId);
       const dish = { name, price: `AED ${price}`, categoryId: catId, section: cat?.name || catId };
       const updated = [...customMenuItems, dish];
       await saveCustomMenuItems(updated);
@@ -1408,105 +1406,99 @@ export default function AdminDashboard() {
                 <h3 className="text-xs font-black tracking-widest uppercase">Add Dish</h3>
               </div>
 
-              {customCategories.length === 0 ? (
-                <div className="text-center text-white/30 text-xs py-10">
-                  Create a category first before adding dishes.
+              {/* Add Dish Form */}
+              <div className="flex flex-col gap-3 bg-white/3 border border-white/5 rounded-2xl p-4">
+                {/* Category selector */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">Category</label>
+                  <select
+                    value={newDishCat}
+                    onChange={(e) => setNewDishCat(e.target.value)}
+                    className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-[#111111]">{c.name} (Built-in)</option>
+                    ))}
+                    {customCategories.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-[#111111]">{c.name} (Custom)</option>
+                    ))}
+                  </select>
                 </div>
-              ) : (
-                <>
-                  {/* Add Dish Form */}
-                  <div className="flex flex-col gap-3 bg-white/3 border border-white/5 rounded-2xl p-4">
-                    {/* Category selector */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">Category</label>
-                      <select
-                        value={newDishCat}
-                        onChange={(e) => setNewDishCat(e.target.value)}
-                        className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white"
-                      >
-                        {customCategories.map((c) => (
-                          <option key={c.id} value={c.id} className="bg-[#111111]">{c.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {/* Dish name */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">Dish Name</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Chocolate Lava Cake"
-                        value={newDishName}
-                        onChange={(e) => setNewDishName(e.target.value)}
-                        className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30"
-                      />
-                    </div>
-                    {/* Price */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">Price (AED)</label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/40">AED</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          placeholder="15.00"
-                          value={newDishPrice}
-                          onChange={(e) => setNewDishPrice(e.target.value)}
-                          className="w-full bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30"
-                        />
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleAddDish}
-                      disabled={menuSaving || !newDishName.trim() || !newDishPrice.trim()}
-                      className="w-full py-2.5 bg-[#036835] hover:bg-[#024d27] text-white text-[10px] font-black tracking-widest uppercase rounded-xl transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm">add_circle</span>
-                      Add Dish to Menu
-                    </button>
+                {/* Dish name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-black text-white/40 tracking-widest uppercase font-bold">Dish Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Chocolate Lava Cake"
+                    value={newDishName}
+                    onChange={(e) => setNewDishName(e.target.value)}
+                    className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30"
+                  />
+                </div>
+                {/* Price */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-black text-white/40 tracking-widest uppercase font-bold">Price (AED)</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/40">AED</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      placeholder="15.00"
+                      value={newDishPrice}
+                      onChange={(e) => setNewDishPrice(e.target.value)}
+                      className="w-full bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30"
+                    />
                   </div>
+                </div>
+                <button
+                  onClick={handleAddDish}
+                  disabled={menuSaving || !newDishName.trim() || !newDishPrice.trim()}
+                  className="w-full py-2.5 bg-[#036835] hover:bg-[#024d27] text-white text-[10px] font-black tracking-widest uppercase rounded-xl transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add_circle</span>
+                  Add Dish to Menu
+                </button>
+              </div>
 
-                  {/* Status message */}
-                  {menuMsg && (
-                    <div className="text-xs font-bold text-center py-1 text-white/80 animate-fadeIn">{menuMsg}</div>
-                  )}
-
-                  {/* Dish List per category */}
-                  <div className="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-none">
-                    {customCategories.map((cat) => {
-                      const items = customMenuItems.filter((i) => i.categoryId === cat.id);
-                      if (items.length === 0) return null;
-                      return (
-                        <div key={cat.id} className="flex flex-col gap-2">
-                          <span className="text-[9px] font-black text-white/40 tracking-widest uppercase px-1">{cat.name}</span>
-                          {items.map((item, idx) => {
-                            const globalIdx = customMenuItems.findIndex((i, gi) => i.name === item.name && i.categoryId === item.categoryId && gi >= (customMenuItems.findIndex((x) => x.categoryId === cat.id)));
-                            const realIdx = customMenuItems.indexOf(item);
-                            return (
-                              <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/5 rounded-2xl px-4 py-3">
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-bold text-white/90">{item.name}</span>
-                                  <span className="text-[9px] font-black text-[#dfbb24] mt-0.5">{item.price}</span>
-                                </div>
-                                <button
-                                  onClick={() => handleDeleteDish(realIdx)}
-                                  disabled={menuSaving}
-                                  className="text-red-400/60 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30"
-                                >
-                                  <span className="material-symbols-outlined text-base">delete</span>
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
-                    {customMenuItems.length === 0 && (
-                      <div className="text-center text-white/30 text-xs py-8">No dishes added yet.</div>
-                    )}
-                  </div>
-                </>
+              {/* Status message */}
+              {menuMsg && (
+                <div className="text-xs font-bold text-center py-1 text-white/80 animate-fadeIn">{menuMsg}</div>
               )}
+
+              {/* Dish List per category */}
+              <div className="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-none">
+                {[...categories, ...customCategories].map((cat) => {
+                  const items = customMenuItems.filter((i) => i.categoryId === cat.id);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={cat.id} className="flex flex-col gap-2">
+                      <span className="text-[9px] font-black text-white/40 tracking-widest uppercase px-1">{cat.name}</span>
+                      {items.map((item, idx) => {
+                        const realIdx = customMenuItems.indexOf(item);
+                        return (
+                          <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/5 rounded-2xl px-4 py-3">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-white/90">{item.name}</span>
+                              <span className="text-[9px] font-black text-[#dfbb24] mt-0.5">{item.price}</span>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteDish(realIdx)}
+                              disabled={menuSaving}
+                              className="text-red-400/60 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30"
+                            >
+                              <span className="material-symbols-outlined text-base">delete</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+                {customMenuItems.length === 0 && (
+                  <div className="text-center text-white/30 text-xs py-8">No dishes added yet.</div>
+                )}
+              </div>
             </div>
 
           </div>

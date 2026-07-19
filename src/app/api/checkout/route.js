@@ -48,6 +48,22 @@ export async function POST(request) {
         }
       });
 
+      // Load custom menu items from DB settings
+      const { data: customMenuItemsSetting } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "customMenuItems")
+        .single();
+      const customMenuItemsList = (customMenuItemsSetting && Array.isArray(customMenuItemsSetting.value)) ? customMenuItemsSetting.value : [];
+      
+      customMenuItemsList.forEach((item) => {
+        const cleanPriceStr = String(item.price).replace(/[^\d.]/g, "");
+        const parsedPrice = parseFloat(cleanPriceStr);
+        if (!isNaN(parsedPrice)) {
+          priceMap[item.name.trim().toLowerCase()] = parsedPrice;
+        }
+      });
+
       // 3. Compute expected total
       let expectedTotal = 0;
       let allItemsFound = true;

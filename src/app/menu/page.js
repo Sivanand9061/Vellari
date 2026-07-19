@@ -51,15 +51,29 @@ export default function MenuPage() {
 
   // Merged category/item lists (static + custom)
   const categories = [...staticCategories, ...customCategories];
-  const menuData = {
-    ...staticMenuData,
-    ...customCategories.reduce((acc, cat) => {
-      acc[cat.id] = customMenuItems
-        .filter((i) => i.categoryId === cat.id)
-        .map((i) => ({ name: i.name, price: i.price, section: i.section || cat.name }));
-      return acc;
-    }, {}),
-  };
+
+  const menuData = (() => {
+    const merged = { ...staticMenuData };
+    // Init dynamic categories
+    customCategories.forEach((cat) => {
+      if (!merged[cat.id]) merged[cat.id] = [];
+    });
+    // Append dynamic menu items
+    customMenuItems.forEach((item) => {
+      if (!merged[item.categoryId]) {
+        merged[item.categoryId] = [];
+      }
+      if (!merged[item.categoryId].some((i) => i.name === item.name)) {
+        const catName = categories.find((c) => c.id === item.categoryId)?.name || item.categoryId;
+        merged[item.categoryId].push({
+          name: item.name,
+          price: item.price,
+          section: item.section || catName
+        });
+      }
+    });
+    return merged;
+  })();
 
   useEffect(() => {
     if (isCartOpen) {
