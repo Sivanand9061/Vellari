@@ -42,38 +42,19 @@ export default function MenuPage() {
   const addressDetailsRef = useRef("");
   const phoneInputRef = useRef(null);
   const scrollContainerRef = useRef(null);
-  const lastFocusTimeRef = useRef(0);
-  const lastScrollTopRef = useRef(0);
 
   useEffect(() => {
     if (isCartOpen) {
       setIsAnimating(true);
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      document.body.style.top = `-${scrollY}px`;
+      // Prevent the background page from scrolling while cart is open.
+      // We do NOT use position:fixed because that breaks keyboard-scroll-to-input on iOS.
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
-
-      // Lock window scroll to 0 to prevent browser centering jumps
-      const handleScroll = () => {
-        if (window.scrollY !== 0) {
-          window.scrollTo(0, 0);
-        }
-      };
-      window.addEventListener("scroll", handleScroll);
-
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => {
         clearTimeout(timer);
-        window.removeEventListener("scroll", handleScroll);
-        const savedScrollY = document.body.style.top;
-        document.body.style.position = "";
-        document.body.style.width = "";
-        document.body.style.top = "";
+        document.documentElement.style.overflow = "";
         document.body.style.overflow = "";
-        if (savedScrollY) {
-          window.scrollTo(0, parseInt(savedScrollY, 10) * -1);
-        }
       };
     }
   }, [isCartOpen]);
@@ -279,9 +260,6 @@ export default function MenuPage() {
     return Object.values(cart).some((item) => item.price.includes("/"));
   };
 
-  const handleInputFocus = () => {
-    lastFocusTimeRef.current = Date.now();
-  };
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
@@ -492,11 +470,12 @@ export default function MenuPage() {
             onClick={() => setIsCartOpen(false)}
           />
 
-          {/* Bottom Sheet Drawer */}
+          {/* Bottom Sheet Drawer — uses dynamic viewport height so it sits above the keyboard */}
           <div
-            className={`relative w-full max-w-md bg-[#fffcf2] border-t border-[#e5dbb2]/65 rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl z-10 ${
+            className={`relative w-full max-w-md bg-[#fffcf2] border-t border-[#e5dbb2]/65 rounded-t-3xl flex flex-col shadow-2xl z-10 ${
               isAnimating ? "animate-scaleUp" : ""
             }`}
+            style={{ maxHeight: "85dvh" }}
           >
             {/* Grab Handle */}
             <div className="w-full flex justify-center py-2 shrink-0">
@@ -601,7 +580,6 @@ export default function MenuPage() {
                       autoComplete="off"
                       autoCorrect="off"
                       spellCheck="false"
-                      onFocus={handleInputFocus}
                       onChange={() => {
                         setPhoneError(false);
                       }}
@@ -688,7 +666,9 @@ export default function MenuPage() {
                           type="text"
                           ref={addressDetailsRef}
                           defaultValue={addressDetails}
-                          onFocus={handleInputFocus}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck="false"
                           onChange={(e) => {
                             if (e.target.value.trim() !== "") setAddressError(false);
                           }}
