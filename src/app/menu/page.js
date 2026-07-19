@@ -42,21 +42,47 @@ export default function MenuPage() {
   const addressDetailsRef = useRef("");
   const phoneInputRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const drawerRef = useRef(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     if (isCartOpen) {
       setIsAnimating(true);
-      // Prevent the background page from scrolling while cart is open.
-      // We do NOT use position:fixed because that breaks keyboard-scroll-to-input on iOS.
-      document.documentElement.style.overflow = "hidden";
+      // Freeze background scroll without position:fixed (which breaks iOS keyboard scroll)
+      const scrollY = window.scrollY;
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => {
         clearTimeout(timer);
-        document.documentElement.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
         document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+        setKeyboardOffset(0);
       };
     }
+  }, [isCartOpen]);
+
+  // visualViewport: track keyboard height and pin drawer above it
+  useEffect(() => {
+    if (!isCartOpen) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      const offset = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardOffset(offset > 0 ? offset : 0);
+    };
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    onResize();
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
   }, [isCartOpen]);
 
   // Handle BottomNav custom events to toggle cart
@@ -463,19 +489,24 @@ export default function MenuPage() {
 
       {/* Cart Bottom Sheet Slide Up Panel */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-50">
           {/* Backdrop overlay */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setIsCartOpen(false)}
           />
 
-          {/* Bottom Sheet Drawer — uses dynamic viewport height so it sits above the keyboard */}
+          {/* Bottom Sheet Drawer — pinned above keyboard via visualViewport */}
           <div
-            className={`relative w-full max-w-md bg-[#fffcf2] border-t border-[#e5dbb2]/65 rounded-t-3xl flex flex-col shadow-2xl z-10 ${
+            ref={drawerRef}
+            className={`fixed left-0 right-0 mx-auto w-full max-w-md bg-[#fffcf2] border-t border-[#e5dbb2]/65 rounded-t-3xl flex flex-col shadow-2xl z-10 ${
               isAnimating ? "animate-scaleUp" : ""
             }`}
-            style={{ maxHeight: "85dvh" }}
+            style={{
+              bottom: keyboardOffset,
+              maxHeight: `calc(85dvh - ${keyboardOffset}px)`,
+              transition: "bottom 0.15s ease, max-height 0.15s ease",
+            }}
           >
             {/* Grab Handle */}
             <div className="w-full flex justify-center py-2 shrink-0">
