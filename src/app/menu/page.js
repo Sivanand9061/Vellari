@@ -51,9 +51,18 @@ export default function MenuPage() {
       document.body.style.top = `-${scrollY}px`;
       document.body.style.overflow = "hidden";
 
+      // Lock window scroll to 0 to prevent browser centering jumps
+      const handleScroll = () => {
+        if (window.scrollY !== 0) {
+          window.scrollTo(0, 0);
+        }
+      };
+      window.addEventListener("scroll", handleScroll);
+
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => {
         clearTimeout(timer);
+        window.removeEventListener("scroll", handleScroll);
         const savedScrollY = document.body.style.top;
         document.body.style.position = "";
         document.body.style.width = "";
