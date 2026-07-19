@@ -83,7 +83,7 @@ export default function BottomNav() {
         <button
           onClick={() => handleNavigation("/")}
           className={`flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-all focus:outline-none cursor-pointer ${
-            pathname === "/" ? "text-[#156734]" : "text-[#156734]/55 hover:text-[#156734]"
+            pathname === "/" ? "text-[#036835]" : "text-[#036835]/55 hover:text-[#036835]"
           }`}
         >
           <span className="material-symbols-outlined text-[19px]">home</span>
@@ -94,7 +94,7 @@ export default function BottomNav() {
         <button
           onClick={() => handleNavigation("/menu")}
           className={`flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-all focus:outline-none cursor-pointer ${
-            pathname === "/menu" ? "text-[#156734]" : "text-[#156734]/55 hover:text-[#156734]"
+            pathname === "/menu" ? "text-[#036835]" : "text-[#036835]/55 hover:text-[#036835]"
           }`}
         >
           <span className="material-symbols-outlined text-[19px]">restaurant_menu</span>
@@ -113,13 +113,13 @@ export default function BottomNav() {
             }
           }}
           className={`relative flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-all focus:outline-none cursor-pointer ${
-            pathname === "/menu" && cartCount > 0 ? "text-[#156734]" : "text-[#156734]/55 hover:text-[#156734]"
+            pathname === "/menu" && cartCount > 0 ? "text-[#036835]" : "text-[#036835]/55 hover:text-[#036835]"
           }`}
         >
           <span className="material-symbols-outlined text-[19px]">shopping_cart</span>
           <span className="text-[9px] font-black uppercase tracking-wider" style={{ fontFamily: "Montserrat, sans-serif" }}>Cart</span>
           {cartCount > 0 && (
-            <span className="absolute top-2.5 right-4 bg-[#156734] text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[#fffcf2] shadow-sm">
+            <span className="absolute top-2.5 right-4 bg-[#036835] text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[#fffcf2] shadow-sm">
               {cartCount}
             </span>
           )}
@@ -135,7 +135,7 @@ export default function BottomNav() {
             }
           }}
           className={`flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-all focus:outline-none cursor-pointer ${
-            pathname.startsWith("/order/") ? "text-[#156734]" : activeOrderId ? "text-[#156734]/85 animate-pulse" : "text-[#156734]/30"
+            pathname.startsWith("/order/") ? "text-[#036835]" : activeOrderId ? "text-[#036835]/85 animate-pulse" : "text-[#036835]/30"
           }`}
         >
           <span className="material-symbols-outlined text-[19px]">track_changes</span>

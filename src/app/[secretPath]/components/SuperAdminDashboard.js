@@ -375,7 +375,7 @@ export default function SuperAdminDashboard() {
     return (
       <div className="min-h-screen bg-[#111] text-white flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
-          <span className="material-symbols-outlined text-4xl text-[#156734] animate-spin">sync</span>
+          <span className="material-symbols-outlined text-4xl text-[#036835] animate-spin">sync</span>
           <span className="text-sm font-semibold tracking-wider">LOADING SUPERADMIN DATA...</span>
         </div>
       </div>
@@ -386,15 +386,15 @@ export default function SuperAdminDashboard() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#111111] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none font-sans">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#156734]/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#036835]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-xs w-full flex flex-col items-center gap-6 z-10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#156734] flex items-center justify-center shadow-lg mb-2">
+          <div className="w-16 h-16 rounded-2xl bg-[#036835] flex items-center justify-center shadow-lg mb-2">
             <span className="material-symbols-outlined text-white text-3xl font-bold">shield_person</span>
           </div>
           
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-base font-black tracking-widest uppercase text-[#156734]">SUPERADMIN PANEL</h1>
+            <h1 className="text-base font-black tracking-widest uppercase text-[#036835]">SUPERADMIN PANEL</h1>
             <p className="text-[10px] font-bold text-white/40 tracking-wider">ENTER 4-DIGIT ADMIN PIN TO ACCESS</p>
           </div>
 
@@ -406,7 +406,7 @@ export default function SuperAdminDashboard() {
                   pinError
                     ? "border-red-500 bg-red-500/30 animate-pulse"
                     : index < pin.length
-                    ? "border-[#156734] bg-[#156734]"
+                    ? "border-[#036835] bg-[#036835]"
                     : "border-white/10 bg-transparent"
                 }`}
               ></div>
@@ -437,7 +437,7 @@ export default function SuperAdminDashboard() {
             </button>
             <button
               onClick={() => handlePinSubmit()}
-              className="aspect-square bg-[#156734] hover:bg-[#0f4d27] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-white active:scale-95 uppercase cursor-pointer"
+              className="aspect-square bg-[#036835] hover:bg-[#0f4d27] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-white active:scale-95 uppercase cursor-pointer"
             >
               Enter
             </button>
@@ -452,7 +452,7 @@ export default function SuperAdminDashboard() {
       {/* Header */}
       <header className="px-6 py-5 bg-[#1a1a1a] border-b border-[#2a2a2a] flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#156734] flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-xl bg-[#036835] flex items-center justify-center shadow-lg">
             <span className="material-symbols-outlined text-white text-2xl font-bold">shield_person</span>
           </div>
           <div className="flex flex-col text-left">
@@ -481,7 +481,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-4.5 border-b-2 text-xs font-black tracking-wider uppercase transition-all focus:outline-none cursor-pointer ${
               activeTab === tab.id
-                ? "border-[#156734] text-white bg-white/2"
+                ? "border-[#036835] text-white bg-white/2"
                 : "border-transparent text-gray-400 hover:text-white"
             }`}
           >
@@ -500,7 +500,7 @@ export default function SuperAdminDashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
               {[
-                { title: "Total Orders", value: stats.totalOrders, icon: "receipt_long", color: "text-[#156734]" },
+                { title: "Total Orders", value: stats.totalOrders, icon: "receipt_long", color: "text-[#036835]" },
                 { title: "Completed Revenue", value: `AED ${stats.totalRevenue.toFixed(2)}`, icon: "payments", color: "text-emerald-400" },
                 { title: "Verified Customers", value: stats.totalCustomers, icon: "people", color: "text-cyan-400" },
                 { title: "Average Order Value", value: `AED ${stats.avgOrderValue.toFixed(2)}`, icon: "calculate", color: "text-amber-400" },
@@ -569,7 +569,7 @@ export default function SuperAdminDashboard() {
               <textarea
                 readOnly
                 value={actionLog || "Terminal is listening. Run actions to see live output log stream..."}
-                className="w-full h-32 bg-black border border-[#2a2a2a] rounded-xl p-3.5 text-xs font-mono text-[#156734] focus:outline-none resize-none"
+                className="w-full h-32 bg-black border border-[#2a2a2a] rounded-xl p-3.5 text-xs font-mono text-[#036835] focus:outline-none resize-none"
               />
             </div>
           </div>
@@ -591,7 +591,7 @@ export default function SuperAdminDashboard() {
               <button
                 onClick={() => handleToggleMaintenance(!maintenanceMode)}
                 className={`w-14 h-8 rounded-full transition-all duration-300 relative focus:outline-none cursor-pointer border ${
-                  maintenanceMode ? "bg-[#156734] border-[#156734]" : "bg-zinc-700 border-zinc-700"
+                  maintenanceMode ? "bg-[#036835] border-[#036835]" : "bg-zinc-700 border-zinc-700"
                 }`}
               >
                 <span className={`absolute top-0.5 w-6.5 h-6.5 bg-white rounded-full transition-all duration-300 shadow-sm ${
@@ -617,7 +617,7 @@ export default function SuperAdminDashboard() {
                   step="100"
                   value={deliveryRadius}
                   onChange={(e) => setDeliveryRadius(e.target.value)}
-                  className="flex-1 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-[#156734]"
+                  className="flex-1 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-[#036835]"
                 />
                 <span className="w-24 text-right text-xs font-black text-white shrink-0 bg-black/40 border border-[#2a2a2a] py-2 px-3 rounded-lg">
                   {Number(deliveryRadius) < 1000 ? `${deliveryRadius} m` : `${(Number(deliveryRadius)/1000).toFixed(1)} km`}
@@ -628,7 +628,7 @@ export default function SuperAdminDashboard() {
                 <button
                   onClick={handleSaveRadius}
                   disabled={saving}
-                  className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#036835] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
                 >
                   Save Radius
                 </button>
@@ -652,7 +652,7 @@ export default function SuperAdminDashboard() {
                     type="text"
                     value={cmsConfig.parentBrandText}
                     onChange={(e) => setCmsConfig({ ...cmsConfig, parentBrandText: e.target.value })}
-                    className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                    className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#036835] font-medium"
                   />
                 </div>
 
@@ -663,7 +663,7 @@ export default function SuperAdminDashboard() {
                       type="text"
                       value={cmsConfig.englishLogoUrl}
                       onChange={(e) => setCmsConfig({ ...cmsConfig, englishLogoUrl: e.target.value })}
-                      className="flex-1 bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                      className="flex-1 bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#036835] font-medium"
                     />
                     <label className="px-4 py-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs font-bold uppercase rounded-xl transition-all cursor-pointer shadow active:scale-97 flex items-center gap-1.5 shrink-0 border border-white/5">
                       <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
@@ -685,7 +685,7 @@ export default function SuperAdminDashboard() {
                       type="text"
                       value={cmsConfig.malayalamLogoUrl}
                       onChange={(e) => setCmsConfig({ ...cmsConfig, malayalamLogoUrl: e.target.value })}
-                      className="flex-1 bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                      className="flex-1 bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#036835] font-medium"
                     />
                     <label className="px-4 py-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-xs font-bold uppercase rounded-xl transition-all cursor-pointer shadow active:scale-97 flex items-center gap-1.5 shrink-0 border border-white/5">
                       <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
@@ -711,7 +711,7 @@ export default function SuperAdminDashboard() {
                         type="text"
                         value={cmsConfig.heroHeadingLine1}
                         onChange={(e) => setCmsConfig({ ...cmsConfig, heroHeadingLine1: e.target.value })}
-                        className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                        className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#036835] font-medium"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -720,7 +720,7 @@ export default function SuperAdminDashboard() {
                         type="text"
                         value={cmsConfig.heroHeadingLine2}
                         onChange={(e) => setCmsConfig({ ...cmsConfig, heroHeadingLine2: e.target.value })}
-                        className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#156734] font-medium"
+                        className="bg-[#222] border border-[#2a2a2a] text-xs p-3 rounded-xl focus:outline-none focus:border-[#036835] font-medium"
                       />
                     </div>
                   </div>
@@ -731,7 +731,7 @@ export default function SuperAdminDashboard() {
                 <button
                   onClick={handleSaveCmsConfig}
                   disabled={saving}
-                  className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#036835] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
                 >
                   Save Branding Config
                 </button>
@@ -796,7 +796,7 @@ export default function SuperAdminDashboard() {
                 <button
                   onClick={handleSaveCmsConfig}
                   disabled={saving}
-                  className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#036835] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
                 >
                   Save Carousel Slides
                 </button>
@@ -898,7 +898,7 @@ export default function SuperAdminDashboard() {
                     const temp = [...cmsSpecials, { name: "New Special Item", price: "10.00", tag: "Special Pick", image: "/img/biryani.png" }];
                     setCmsSpecials(temp);
                   }}
-                  className="px-4 py-2 border border-[#156734] hover:bg-[#156734]/10 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 border border-[#036835] hover:bg-[#036835]/10 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">add</span>
                   Add New Special
@@ -907,7 +907,7 @@ export default function SuperAdminDashboard() {
                 <button
                   onClick={() => handleSaveSpecials()}
                   disabled={saving}
-                  className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#036835] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
                 >
                   Save Specials List
                 </button>
@@ -996,7 +996,7 @@ export default function SuperAdminDashboard() {
                     const temp = [...cmsVideos, { title: "New Cooking Video", thumbnail: "/img/making_chai.png", embedUrl: "https://www.youtube.com/embed/5U9N1wF35bU" }];
                     setCmsVideos(temp);
                   }}
-                  className="px-4 py-2 border border-[#156734] hover:bg-[#156734]/10 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 border border-[#036835] hover:bg-[#036835]/10 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">add</span>
                   Add New Video
@@ -1005,7 +1005,7 @@ export default function SuperAdminDashboard() {
                 <button
                   onClick={() => handleSaveVideos()}
                   disabled={saving}
-                  className="px-6 py-2.5 bg-[#156734] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#036835] hover:bg-[#0f4d27] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow active:scale-97 disabled:opacity-50 cursor-pointer"
                 >
                   Save Videos List
                 </button>

@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brandGreen: #006B2B;
-  --color-brandGreenDark: #004D1F;
-  --color-brandGold: #F5B041;
-  --color-brandGoldDark: #D49228;
+  --color-brandGreen: #036835;
+  --color-brandGreenDark: #024d27;
+  --color-brandGold: #dfbb24;
+  --color-brandGoldDark: #b2951c;
   --color-brandDark: #111111;
-  --color-brandLight: #FFFDF9;
+  --color-brandLight: #fffcf2;
   --color-whatsappGreen: #25D366;
   --color-whatsappGreenDark: #128C7E;
 
@@ -63,7 +63,7 @@
 }
 
 :root {
-  --background: #FFFDF9;
+  --background: #fffcf2;
   --foreground: #111111;
 }
 

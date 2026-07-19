@@ -260,7 +260,7 @@ export default function Home() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
           <span
-            className="text-[#156734] font-black text-2xl tracking-tight uppercase"
+            className="text-[#036835] font-black text-2xl tracking-tight uppercase"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             Vellari
@@ -271,28 +271,28 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-8">
           <Link
             href="/menu"
-            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            className="text-[#036835] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             MENU
           </Link>
           <a
             href="#specials"
-            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            className="text-[#036835] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             SPECIALS
           </a>
           <a
             href="#making"
-            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            className="text-[#036835] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             THE MAKING
           </a>
           <a
             href="#contact"
-            className="text-[#156734] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
+            className="text-[#036835] font-semibold text-sm tracking-wide hover:opacity-60 transition-opacity"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             CONTACT
@@ -301,7 +301,7 @@ export default function Home() {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-[#156734] focus:outline-none cursor-pointer"
+          className="md:hidden text-[#036835] focus:outline-none cursor-pointer"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           <span className="material-symbols-outlined text-[26px]">
@@ -314,7 +314,7 @@ export default function Home() {
           <div className="absolute top-full left-0 right-0 bg-[#fffcf2] border-t border-[#e5dbb2] px-6 py-6 flex flex-col gap-5 md:hidden shadow-md animate-fade-in">
             <Link
               href="/menu"
-              className="text-[#156734] font-bold text-base text-left"
+              className="text-[#036835] font-bold text-base text-left"
               style={{ fontFamily: "Montserrat, sans-serif" }}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -322,7 +322,7 @@ export default function Home() {
             </Link>
             <a
               href="#specials"
-              className="text-[#156734] font-bold text-base text-left"
+              className="text-[#036835] font-bold text-base text-left"
               style={{ fontFamily: "Montserrat, sans-serif" }}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -330,7 +330,7 @@ export default function Home() {
             </a>
             <a
               href="#making"
-              className="text-[#156734] font-bold text-base text-left"
+              className="text-[#036835] font-bold text-base text-left"
               style={{ fontFamily: "Montserrat, sans-serif" }}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -338,7 +338,7 @@ export default function Home() {
             </a>
             <a
               href="#contact"
-              className="text-[#156734] font-bold text-base text-left"
+              className="text-[#036835] font-bold text-base text-left"
               style={{ fontFamily: "Montserrat, sans-serif" }}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -354,25 +354,25 @@ export default function Home() {
         <section className="relative h-[82vh] min-h-[480px] max-h-[800px] pt-4 pb-6 px-5 md:px-14 flex flex-col items-center justify-center gap-3 md:gap-5 bg-[#fffcf2] overflow-hidden">
           {/* Eyebrow */}
           <div
-            className="relative z-10 flex items-center gap-2 text-[#156734]/60 text-[10px] md:text-xs font-bold tracking-[0.18em] uppercase"
+            className="relative z-10 flex items-center gap-2 text-[#036835]/60 text-[10px] md:text-xs font-bold tracking-[0.18em] uppercase"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            <span className="w-6 h-px bg-[#156734]/30" />
+            <span className="w-6 h-px bg-[#036835]/30" />
             {config.parentBrandText}
-            <span className="w-6 h-px bg-[#156734]/30" />
+            <span className="w-6 h-px bg-[#036835]/30" />
           </div>
 
           {/* Heading */}
           <div className="relative z-10 text-center max-w-3xl flex flex-col items-center">
             <h1
-              className="text-[#156734] font-black leading-[1.1] tracking-tight mb-1"
+              className="text-[#036835] font-black leading-[1.1] tracking-tight mb-1"
               style={{
                 fontFamily: "Montserrat, sans-serif",
                 fontSize: "clamp(2rem, 6.5vw, 4.2rem)",
               }}
             >
               {config.heroHeadingLine1}<br />
-              <span className="text-[#156734]/35">{config.heroHeadingLine2}</span>
+              <span className="text-[#036835]/35">{config.heroHeadingLine2}</span>
             </h1>
             
             {/* Malayalam Subtitle Logo */}
@@ -415,7 +415,7 @@ export default function Home() {
           {/* CTA */}
           <Link
             href="/menu"
-            className="relative z-10 inline-flex items-center gap-2 bg-[#156734] hover:bg-[#0f4d27] text-white font-bold px-8 py-3.5 rounded-[16px] transition-all text-sm shadow-[0_6px_20px_rgba(21,103,52,0.25)] hover:scale-102 active:scale-98 cursor-pointer"
+            className="relative z-10 inline-flex items-center gap-2 bg-[#036835] hover:bg-[#0f4d27] text-white font-bold px-8 py-3.5 rounded-[16px] transition-all text-sm shadow-[0_6px_20px_rgba(21,103,52,0.25)] hover:scale-102 active:scale-98 cursor-pointer"
             style={{ fontFamily: "Montserrat, sans-serif", letterSpacing: "-0.03em" }}
           >
             EXPLORE MENU
@@ -432,13 +432,13 @@ export default function Home() {
             {/* Section Header */}
             <div className="mb-12 text-left">
               <p
-                className="text-[#156734]/50 text-xs font-bold tracking-[0.18em] uppercase mb-3"
+                className="text-[#036835]/50 text-xs font-bold tracking-[0.18em] uppercase mb-3"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 Handpicked by our head chef
               </p>
               <h2
-                className="text-[#156734] font-black leading-tight tracking-tight uppercase"
+                className="text-[#036835] font-black leading-tight tracking-tight uppercase"
                 style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)" }}
               >
                 Chef&apos;s Special
@@ -450,7 +450,7 @@ export default function Home() {
               {specials.map((dish, i) => (
                 <div
                   key={dish.name || i}
-                  className="group shrink-0 rounded-[28px] overflow-hidden bg-[#fffcf2] shadow-[2px_4px_16px_rgba(21,103,52,0.06)] border border-[#e5dbb2]/20 hover:shadow-[2px_6px_24px_rgba(21,103,52,0.12)] hover:border-[#156734]/20 transition-all duration-300 p-3 text-left flex flex-col justify-between"
+                  className="group shrink-0 rounded-[28px] overflow-hidden bg-[#fffcf2] shadow-[2px_4px_16px_rgba(21,103,52,0.06)] border border-[#e5dbb2]/20 hover:shadow-[2px_6px_24px_rgba(21,103,52,0.12)] hover:border-[#036835]/20 transition-all duration-300 p-3 text-left flex flex-col justify-between"
                   style={{ width: 160, height: 230 }}
                 >
                   {/* Square Image container */}
@@ -465,19 +465,19 @@ export default function Home() {
                   {/* Info */}
                   <div className="flex flex-col gap-0.5 justify-end flex-1">
                     <span
-                      className="text-[#156734]/50 text-[8px] font-bold uppercase tracking-widest block"
+                      className="text-[#036835]/50 text-[8px] font-bold uppercase tracking-widest block"
                       style={{ fontFamily: "Montserrat, sans-serif" }}
                     >
                       {dish.tag}
                     </span>
                     <p
-                      className="text-[#156734] font-bold text-xs tracking-tight uppercase truncate"
+                      className="text-[#036835] font-bold text-xs tracking-tight uppercase truncate"
                       style={{ fontFamily: "Montserrat, sans-serif" }}
                     >
                       {dish.name}
                     </p>
                     <p
-                      className="text-[#156734] font-black text-sm tracking-tight mt-1"
+                      className="text-[#036835] font-black text-sm tracking-tight mt-1"
                       style={{ fontFamily: "Montserrat, sans-serif" }}
                     >
                       AED {dish.price}
@@ -495,13 +495,13 @@ export default function Home() {
             {/* Section Header */}
             <div className="mb-12 text-left">
               <p
-                className="text-[#156734]/50 text-xs font-bold tracking-[0.18em] uppercase mb-3"
+                className="text-[#036835]/50 text-xs font-bold tracking-[0.18em] uppercase mb-3"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 A peek behind the curtain
               </p>
               <h2
-                className="text-[#156734] font-black leading-tight tracking-tight uppercase"
+                className="text-[#036835] font-black leading-tight tracking-tight uppercase"
                 style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)" }}
               >
                 The Making
@@ -524,12 +524,12 @@ export default function Home() {
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                   />
                   {/* Dark transparent mask overlay */}
-                  <div className="absolute inset-0 bg-[#156734]/15 group-hover:bg-[#156734]/25 transition-colors duration-300" />
+                  <div className="absolute inset-0 bg-[#036835]/15 group-hover:bg-[#036835]/25 transition-colors duration-300" />
 
                   {/* Play badge */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                     <div className="w-14 h-14 rounded-full bg-white/90 shadow-md flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <span className="material-symbols-outlined text-[#156734] text-2xl ml-0.5">play_arrow</span>
+                      <span className="material-symbols-outlined text-[#036835] text-2xl ml-0.5">play_arrow</span>
                     </div>
                     <span
                       className="text-white text-[9px] font-bold tracking-widest uppercase"
@@ -555,7 +555,7 @@ export default function Home() {
         </section>
 
         {/* Call to Order / Table Reservation Banner */}
-        <section className="py-14 md:py-20 px-5 md:px-14 bg-[#156734]">
+        <section className="py-14 md:py-20 px-5 md:px-14 bg-[#036835]">
           <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-8">
             <p
               className="text-white/50 text-xs font-bold tracking-[0.18em] uppercase"
@@ -582,7 +582,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="tel:+97148342856"
-                className="inline-flex items-center gap-2 bg-[#fffcf2] text-[#156734] font-bold px-8 py-4 rounded-[20px] hover:bg-white transition-all text-sm shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-102 active:scale-98"
+                className="inline-flex items-center gap-2 bg-[#fffcf2] text-[#036835] font-bold px-8 py-4 rounded-[20px] hover:bg-white transition-all text-sm shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-102 active:scale-98"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 <span className="material-symbols-outlined text-[16px]">call</span>
@@ -608,34 +608,34 @@ export default function Home() {
             {/* Address */}
             <div className="flex-1">
               <h3
-                className="text-[#156734] font-bold text-xs tracking-[0.15em] uppercase mb-4"
+                className="text-[#036835] font-bold text-xs tracking-[0.15em] uppercase mb-4"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 Visit Us
               </h3>
               <p
-                className="text-[#156734]/70 text-sm leading-relaxed font-semibold flex flex-col gap-1"
+                className="text-[#036835]/70 text-sm leading-relaxed font-semibold flex flex-col gap-1"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 <span>Near Nesto Hypermarket</span>
                 <span>Al Karama, Dubai - UAE</span>
-                <span className="mt-3 font-black text-[#156734]">Open Daily: 7:00 AM – 11:00 PM</span>
+                <span className="mt-3 font-black text-[#036835]">Open Daily: 7:00 AM – 11:00 PM</span>
               </p>
             </div>
 
             {/* Direct contact */}
             <div className="flex-1">
               <h3
-                className="text-[#156734] font-bold text-xs tracking-[0.15em] uppercase mb-4"
+                className="text-[#036835] font-bold text-xs tracking-[0.15em] uppercase mb-4"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 Say Hello
               </h3>
               <p
-                className="text-[#156734]/70 text-sm leading-relaxed font-semibold flex flex-col gap-1"
+                className="text-[#036835]/70 text-sm leading-relaxed font-semibold flex flex-col gap-1"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                <a href="tel:+97148342856" className="hover:underline font-black text-[#156734]">
+                <a href="tel:+97148342856" className="hover:underline font-black text-[#036835]">
                   Phone: +971 4 834 2856
                 </a>
                 <a href="mailto:vellarirestaurant@gmail.com" className="hover:underline mt-1">
@@ -645,7 +645,7 @@ export default function Home() {
                   href="https://www.instagram.com/vellari_restaurant?igsh=emxoZG9jY3pjM2Z3"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline mt-1 font-bold text-[#156734] flex items-center gap-1.5"
+                  className="hover:underline mt-1 font-bold text-[#036835] flex items-center gap-1.5"
                 >
                   Instagram: @vellari_restaurant
                 </a>
@@ -660,13 +660,13 @@ export default function Home() {
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start justify-between gap-10">
           <div>
             <p
-              className="text-[#156734] font-black text-xl tracking-tight uppercase mb-2"
+              className="text-[#036835] font-black text-xl tracking-tight uppercase mb-2"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               Vellari Restaurant
             </p>
             <p
-              className="text-[#156734]/50 text-sm max-w-xs leading-relaxed font-medium"
+              className="text-[#036835]/50 text-sm max-w-xs leading-relaxed font-medium"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               Authentic Kerala street eats in Al Karama, Dubai. Open daily 7:00 AM – 11:00 PM.
@@ -675,7 +675,7 @@ export default function Home() {
           <div className="flex gap-14 flex-wrap">
             <div>
               <p
-                className="text-[#156734] font-semibold text-xs tracking-[0.15em] uppercase mb-4"
+                className="text-[#036835] font-semibold text-xs tracking-[0.15em] uppercase mb-4"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 Navigate
@@ -683,21 +683,21 @@ export default function Home() {
               <div className="flex flex-col gap-3">
                 <Link
                   href="/menu"
-                  className="text-[#156734]/60 text-sm hover:text-[#156734] transition-colors font-medium text-left"
+                  className="text-[#036835]/60 text-sm hover:text-[#036835] transition-colors font-medium text-left"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   Menu
                 </Link>
                 <a
                   href="#specials"
-                  className="text-[#156734]/60 text-sm hover:text-[#156734] transition-colors font-medium text-left"
+                  className="text-[#036835]/60 text-sm hover:text-[#036835] transition-colors font-medium text-left"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   Specials
                 </a>
                 <a
                   href="#making"
-                  className="text-[#156734]/60 text-sm hover:text-[#156734] transition-colors font-medium text-left"
+                  className="text-[#036835]/60 text-sm hover:text-[#036835] transition-colors font-medium text-left"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   The Making
@@ -706,13 +706,13 @@ export default function Home() {
             </div>
             <div>
               <p
-                className="text-[#156734] font-semibold text-xs tracking-[0.15em] uppercase mb-4"
+                className="text-[#036835] font-semibold text-xs tracking-[0.15em] uppercase mb-4"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 Visit Us
               </p>
               <div
-                className="text-[#156734]/60 text-sm leading-relaxed font-medium flex flex-col gap-1 text-left"
+                className="text-[#036835]/60 text-sm leading-relaxed font-medium flex flex-col gap-1 text-left"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 <span>Near Nesto Hypermarket</span>
@@ -724,7 +724,7 @@ export default function Home() {
         </div>
         <div className="max-w-4xl mx-auto mt-10 pt-6 border-t border-[#e5dbb2] flex items-center justify-between">
           <p
-            className="text-[#156734]/40 text-xs"
+            className="text-[#036835]/40 text-xs"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             © 2026 Vellari Restaurant. All rights reserved.

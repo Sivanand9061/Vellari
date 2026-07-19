@@ -207,7 +207,7 @@ export default function StaffDashboard() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#111111] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none font-sans">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#006B2B]/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#036835]/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-xs w-full flex flex-col items-center gap-6 z-10 text-center">
           <img src="/logo_english.png" alt="Vellari Logo" className="h-10 w-auto object-contain mix-blend-screen mb-2" />
@@ -225,7 +225,7 @@ export default function StaffDashboard() {
                   pinError
                     ? "border-red-500 bg-red-500/30 animate-pulse"
                     : index < pin.length
-                    ? "border-[#F5B041] bg-[#F5B041]"
+                    ? "border-[#dfbb24] bg-[#dfbb24]"
                     : "border-white/10 bg-transparent"
                 }`}
               ></div>
@@ -256,7 +256,7 @@ export default function StaffDashboard() {
             </button>
             <button
               onClick={() => handlePinSubmit()}
-              className="aspect-square bg-[#006B2B] hover:bg-[#004D1F] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-white active:scale-95 uppercase cursor-pointer"
+              className="aspect-square bg-[#036835] hover:bg-[#024d27] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-white active:scale-95 uppercase cursor-pointer"
             >
               Enter
             </button>
@@ -278,11 +278,11 @@ export default function StaffDashboard() {
         <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl px-5 py-2.5">
           <div className="flex flex-col text-left">
             <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">WEBSITE STATUS</span>
-            <span className={`text-[11px] font-bold ${maintenanceMode ? "text-[#F5B041]" : "text-[#006B2B]"}`}>
+            <span className={`text-[11px] font-bold ${maintenanceMode ? "text-[#dfbb24]" : "text-[#036835]"}`}>
               {maintenanceMode ? "PAUSED (Maintenance)" : "ONLINE (Accepting Orders)"}
             </span>
           </div>
-          <span className={`w-2 h-2 rounded-full ${maintenanceMode ? "bg-[#F5B041]" : "bg-green-500 animate-pulse"}`}></span>
+          <span className={`w-2 h-2 rounded-full ${maintenanceMode ? "bg-[#dfbb24]" : "bg-green-500 animate-pulse"}`}></span>
         </div>
       </header>
 
@@ -323,7 +323,7 @@ export default function StaffDashboard() {
                         </h4>
                         <a
                           href={`tel:${order.customer_phone}`}
-                          className="text-xs text-[#F5B041] font-black hover:underline mt-1 block tracking-wider"
+                          className="text-xs text-[#dfbb24] font-black hover:underline mt-1 block tracking-wider"
                         >
                           📞 {order.customer_phone}
                         </a>
@@ -345,7 +345,7 @@ export default function StaffDashboard() {
                           order.items.map((item, idx) => (
                             <li key={idx} className="flex justify-between text-xs font-semibold text-white/90">
                               <span>
-                                <strong className="text-[#F5B041] font-black mr-2">{item.quantity}x</strong>
+                                <strong className="text-[#dfbb24] font-black mr-2">{item.quantity}x</strong>
                                 {item.name}
                               </span>
                             </li>
@@ -364,7 +364,7 @@ export default function StaffDashboard() {
                             href={order.address_gps}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] text-[#006B2B] font-black hover:underline mt-1"
+                            className="inline-flex items-center gap-1 text-[10px] text-[#036835] font-black hover:underline mt-1"
                           >
                             📍 View Pinned Location (Maps)
                           </a>
@@ -380,7 +380,7 @@ export default function StaffDashboard() {
                         className={`w-full py-3.5 text-xs font-black tracking-widest rounded-xl transition-all duration-300 shadow-md uppercase cursor-pointer hover:scale-102 active:scale-98 ${
                           isPendingConfirm
                             ? "bg-red-500 hover:bg-red-600 text-white"
-                            : "bg-[#006B2B] hover:bg-[#004D1F] text-white"
+                            : "bg-[#036835] hover:bg-[#024d27] text-white"
                         }`}
                       >
                         {isPendingConfirm ? "📞 Verified & Accept" : "Accept Order"}

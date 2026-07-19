@@ -508,13 +508,13 @@ export default function AdminDashboard() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#111111] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none font-sans">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#F5B041]/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#dfbb24]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-xs w-full flex flex-col items-center gap-6 z-10 text-center">
           <img src="/logo_english.png" alt="Vellari Logo" className="h-10 w-auto object-contain mix-blend-screen mb-2" />
           
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-base font-black tracking-widest uppercase text-[#F5B041]">OWNER DASHBOARD</h1>
+            <h1 className="text-base font-black tracking-widest uppercase text-[#dfbb24]">OWNER DASHBOARD</h1>
             <p className="text-[10px] font-bold text-white/40 tracking-wider">ENTER 4-DIGIT ADMIN PIN TO ACCESS</p>
           </div>
 
@@ -526,7 +526,7 @@ export default function AdminDashboard() {
                   pinError
                     ? "border-red-500 bg-red-500/30 animate-pulse"
                     : index < pin.length
-                    ? "border-[#F5B041] bg-[#F5B041]"
+                    ? "border-[#dfbb24] bg-[#dfbb24]"
                     : "border-white/10 bg-transparent"
                 }`}
               ></div>
@@ -557,7 +557,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => handlePinSubmit()}
-              className="aspect-square bg-[#F5B041] hover:bg-[#D49228] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-black active:scale-95 uppercase cursor-pointer"
+              className="aspect-square bg-[#dfbb24] hover:bg-[#b2951c] text-[10px] font-black tracking-widest rounded-2xl flex items-center justify-center text-black active:scale-95 uppercase cursor-pointer"
             >
               Enter
             </button>
@@ -575,21 +575,21 @@ export default function AdminDashboard() {
       <header className="bg-[#111111] border-b border-white/5 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <img src="/logo_english.png" alt="Vellari" className="h-8 w-auto object-contain mix-blend-screen" />
-          <span className="text-[10px] font-black tracking-widest uppercase text-[#F5B041] bg-[#F5B041]/10 px-2.5 py-1 rounded-full">OWNER PANEL</span>
+          <span className="text-[10px] font-black tracking-widest uppercase text-[#dfbb24] bg-[#dfbb24]/10 px-2.5 py-1 rounded-full">OWNER PANEL</span>
         </div>
 
         {/* Dynamic Maintenance Toggle */}
         <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-5 py-2">
           <div className="flex flex-col text-left">
             <span className="text-[9px] font-black tracking-widest text-white/40 uppercase">WEBSITE STATUS</span>
-            <span className={`text-[11px] font-bold ${maintenanceMode ? "text-[#F5B041]" : "text-[#006B2B]"}`}>
+            <span className={`text-[11px] font-bold ${maintenanceMode ? "text-[#dfbb24]" : "text-[#036835]"}`}>
               {maintenanceMode ? "PAUSED (Maintenance)" : "ONLINE (Accepting Orders)"}
             </span>
           </div>
           <button
             onClick={handleToggleMaintenance}
             className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-              maintenanceMode ? "bg-[#F5B041]" : "bg-[#006B2B]"
+              maintenanceMode ? "bg-[#dfbb24]" : "bg-[#036835]"
             }`}
           >
             <div
@@ -624,7 +624,7 @@ export default function AdminDashboard() {
                 }
               }}
               className={`w-9 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                deliveryRadius !== "unlimited" && deliveryRadius !== "0" ? "bg-[#F5B041]" : "bg-white/10"
+                deliveryRadius !== "unlimited" && deliveryRadius !== "0" ? "bg-[#dfbb24]" : "bg-white/10"
               }`}
             >
               <div
@@ -646,7 +646,7 @@ export default function AdminDashboard() {
                 step="0.1"
                 value={parseFloat(deliveryRadius) || 3.0}
                 onChange={(e) => handleRadiusChange(e.target.value)}
-                className="flex-1 accent-[#F5B041] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                className="flex-1 accent-[#dfbb24] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
               />
               <span className="text-[9px] font-bold text-white/30">5km</span>
             </div>
@@ -666,7 +666,7 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg-[#F5B041] text-black shadow-md"
+                  ? "bg-[#dfbb24] text-black shadow-md"
                   : "text-white/60 hover:text-white"
               }`}
             >
@@ -704,7 +704,7 @@ export default function AdminDashboard() {
                   onClick={() => handlePresetChange(preset.id)}
                   className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase transition-all cursor-pointer whitespace-nowrap ${
                     datePreset === preset.id
-                      ? "bg-[#F5B041] text-black shadow-md"
+                      ? "bg-[#dfbb24] text-black shadow-md"
                       : "text-white/60 hover:text-white"
                   }`}
                 >
@@ -723,7 +723,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-1.5">
                 <span className="text-[9px] font-black text-white/40 tracking-widest uppercase">TOTAL REVENUE (COMPLETED)</span>
-                <span className="text-2xl font-black text-[#006B2B]">AED {totalRevenue.toFixed(2)}</span>
+                <span className="text-2xl font-black text-[#036835]">AED {totalRevenue.toFixed(2)}</span>
               </div>
               <div className="bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-1.5">
                 <span className="text-[9px] font-black text-white/40 tracking-widest uppercase">TOTAL ORDERS RECORDED</span>
@@ -731,14 +731,14 @@ export default function AdminDashboard() {
               </div>
               <div className="bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-1.5">
                 <span className="text-[9px] font-black text-white/40 tracking-widest uppercase">VERIFIED CUSTOMERS</span>
-                <span className="text-2xl font-black text-[#F5B041]">{verifiedCustomersCount}</span>
+                <span className="text-2xl font-black text-[#dfbb24]">{verifiedCustomersCount}</span>
               </div>
             </div>
 
             {/* AI Assistant Chat Panel */}
             <div className="bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-4">
               <div className="flex items-center gap-2 border-b border-white/5 pb-4">
-                <span className="material-symbols-outlined text-[#F5B041] text-xl">smart_toy</span>
+                <span className="material-symbols-outlined text-[#dfbb24] text-xl">smart_toy</span>
                 <h3 className="text-xs font-black tracking-widest uppercase">Vellari AI Business Analyst</h3>
               </div>
 
@@ -750,7 +750,7 @@ export default function AdminDashboard() {
                     className={`max-w-[80%] rounded-2xl p-3.5 text-xs leading-relaxed font-semibold ${
                       msg.role === "assistant"
                         ? "bg-white/5 text-white/90 self-start border border-white/5"
-                        : "bg-[#F5B041]/10 text-[#F5B041] self-end border border-[#F5B041]/20"
+                        : "bg-[#dfbb24]/10 text-[#dfbb24] self-end border border-[#dfbb24]/20"
                     }`}
                   >
                     {msg.content}
@@ -770,12 +770,12 @@ export default function AdminDashboard() {
                   value={aiQuestion}
                   onChange={(e) => setAiQuestion(e.target.value)}
                   placeholder="e.g. What is the average bill? Or Who ordered the most?"
-                  className="flex-1 bg-white/5 border border-white/5 focus:border-[#F5B041] focus:outline-none rounded-xl px-4 py-3 text-xs text-white placeholder-white/30"
+                  className="flex-1 bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-3 text-xs text-white placeholder-white/30"
                 />
                 <button
                   type="submit"
                   disabled={isAiLoading || !aiQuestion.trim()}
-                  className="px-6 py-3 bg-[#F5B041] hover:bg-[#D49228] text-black text-[10px] font-black tracking-widest uppercase rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-3 bg-[#dfbb24] hover:bg-[#b2951c] text-black text-[10px] font-black tracking-widest uppercase rounded-xl transition-all disabled:opacity-50 cursor-pointer"
                 >
                   Ask
                 </button>
@@ -801,7 +801,7 @@ export default function AdminDashboard() {
                   value={searchPhone}
                   onChange={(e) => setSearchPhone(e.target.value)}
                   placeholder="Type phone number..."
-                  className="bg-white/5 border border-white/5 focus:border-[#F5B041] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30"
+                  className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30"
                 />
               </div>
 
@@ -810,7 +810,7 @@ export default function AdminDashboard() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-white/5 border border-white/5 focus:border-[#F5B041] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white"
+                  className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white"
                 >
                   <option value="all">All Statuses</option>
                   <option value="pending_verification">Pending Verification</option>
@@ -826,7 +826,7 @@ export default function AdminDashboard() {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="bg-white/5 border border-white/5 focus:border-[#F5B041] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white"
+                  className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl px-4 py-2.5 text-xs text-white"
                 >
                   <option value="all">All Types</option>
                   <option value="delivery">Delivery</option>
@@ -867,7 +867,7 @@ export default function AdminDashboard() {
                             setSelectedOrderIds([]);
                           }
                         }}
-                        className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                        className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#dfbb24] focus:ring-0 cursor-pointer"
                       />
                     </th>
                     <th className="p-4">Date</th>
@@ -898,7 +898,7 @@ export default function AdminDashboard() {
                                 setSelectedOrderIds(prev => prev.filter(id => id !== order.id));
                               }
                             }}
-                            className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                            className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#dfbb24] focus:ring-0 cursor-pointer"
                           />
                         </td>
                         <td className="p-4 text-white/50">
@@ -916,12 +916,12 @@ export default function AdminDashboard() {
                         <td className="p-4 font-medium leading-relaxed max-w-[200px] truncate">
                           {order.items.map((it) => `${it.quantity}x ${it.name}`).join(", ")}
                         </td>
-                        <td className="p-4 font-black text-[#F5B041]">AED {Number(order.total).toFixed(2)}</td>
+                        <td className="p-4 font-black text-[#dfbb24]">AED {Number(order.total).toFixed(2)}</td>
                         <td className="p-4">
                           <span className={`inline-block px-2.5 py-1 rounded-full text-[9px] font-black tracking-wider uppercase ${
-                            order.status === "completed" ? "bg-[#006B2B]/15 text-[#006B2B]" :
+                            order.status === "completed" ? "bg-[#036835]/15 text-[#036835]" :
                             order.status === "cancelled" ? "bg-red-500/15 text-red-400" :
-                            "bg-[#F5B041]/15 text-[#F5B041]"
+                            "bg-[#dfbb24]/15 text-[#dfbb24]"
                           }`}>
                             {order.status.replace("_", " ")}
                           </span>
@@ -982,7 +982,7 @@ export default function AdminDashboard() {
                             setSelectedCustomerPhones([]);
                           }
                         }}
-                        className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                        className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#dfbb24] focus:ring-0 cursor-pointer"
                       />
                     </th>
                     <th className="p-4">Phone Number</th>
@@ -1010,7 +1010,7 @@ export default function AdminDashboard() {
                                 setSelectedCustomerPhones(prev => prev.filter(ph => ph !== c.phone));
                               }
                             }}
-                            className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#F5B041] focus:ring-0 cursor-pointer"
+                            className="w-4 h-4 rounded border-white/20 bg-[#111111] text-[#dfbb24] focus:ring-0 cursor-pointer"
                           />
                         </td>
                         <td className="p-4 font-black tracking-wider">{c.phone}</td>
@@ -1023,9 +1023,9 @@ export default function AdminDashboard() {
                         </td>
                         <td className="p-4">
                           <span className={`inline-block px-2.5 py-1 rounded-full text-[9px] font-black tracking-wider uppercase ${
-                            c.status === "verified" ? "bg-[#006B2B]/15 text-[#006B2B]" :
+                            c.status === "verified" ? "bg-[#036835]/15 text-[#036835]" :
                             c.status === "blocked" ? "bg-red-500/15 text-red-400 animate-pulse" :
-                            "bg-[#F5B041]/15 text-[#F5B041]"
+                            "bg-[#dfbb24]/15 text-[#dfbb24]"
                           }`}>
                             {c.status.replace("_", " ")}
                           </span>
@@ -1035,7 +1035,7 @@ export default function AdminDashboard() {
                             onClick={() => handleToggleBlock(c.phone, c.status)}
                             className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all cursor-pointer ${
                               c.status === "blocked"
-                                ? "bg-[#006B2B] hover:bg-[#004D1F] text-white"
+                                ? "bg-[#036835] hover:bg-[#024d27] text-white"
                                 : "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20"
                             }`}
                           >
@@ -1058,7 +1058,7 @@ export default function AdminDashboard() {
             {/* Category Toggles Panel (left, 5 cols) */}
             <div className="lg:col-span-5 bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-6">
               <div className="flex items-center gap-2 border-b border-white/5 pb-4">
-                <span className="material-symbols-outlined text-[#F5B041] text-xl">category</span>
+                <span className="material-symbols-outlined text-[#dfbb24] text-xl">category</span>
                 <h3 className="text-xs font-black tracking-widest uppercase">Category Availability</h3>
               </div>
               
@@ -1075,7 +1075,7 @@ export default function AdminDashboard() {
                       <div className="flex flex-col text-left">
                         <span className="text-xs font-bold text-white/90">{cat.name}</span>
                         <span className={`text-[8px] font-black uppercase mt-1 tracking-wider ${
-                          isHidden ? "text-red-400" : "text-[#006B2B]"
+                          isHidden ? "text-red-400" : "text-[#036835]"
                         }`}>
                           {isHidden ? "Hidden from Menu" : "Visible"}
                         </span>
@@ -1084,7 +1084,7 @@ export default function AdminDashboard() {
                       <button
                         onClick={() => handleToggleCategoryAvailability(cat.id)}
                         className={`relative w-11 h-6 rounded-full transition-all duration-300 focus:outline-none cursor-pointer ${
-                          !isHidden ? "bg-[#006B2B]" : "bg-white/10"
+                          !isHidden ? "bg-[#036835]" : "bg-white/10"
                         }`}
                       >
                         <div
@@ -1103,7 +1103,7 @@ export default function AdminDashboard() {
             <div className="lg:col-span-7 bg-white/2 border border-white/5 rounded-3xl p-6 flex flex-col gap-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#F5B041] text-xl">restaurant_menu</span>
+                  <span className="material-symbols-outlined text-[#dfbb24] text-xl">restaurant_menu</span>
                   <h3 className="text-xs font-black tracking-widest uppercase">Menu Items Toggle</h3>
                 </div>
                 
@@ -1114,7 +1114,7 @@ export default function AdminDashboard() {
                     placeholder="Search menu item..."
                     onChange={(e) => setAdminItemSearch(e.target.value)}
                     value={adminItemSearch}
-                    className="bg-white/5 border border-white/5 focus:border-[#F5B041] focus:outline-none rounded-xl pl-8 pr-4 py-1.5 text-xs text-white placeholder-white/30 w-full sm:w-48"
+                    className="bg-white/5 border border-white/5 focus:border-[#dfbb24] focus:outline-none rounded-xl pl-8 pr-4 py-1.5 text-xs text-white placeholder-white/30 w-full sm:w-48"
                   />
                   <span className="material-symbols-outlined absolute left-2.5 top-1.5 text-white/30 text-base">search</span>
                 </div>
@@ -1129,7 +1129,7 @@ export default function AdminDashboard() {
                       onClick={() => setAdminActiveCategory(cat.id)}
                       className={`px-3 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all duration-200 border whitespace-nowrap ${
                         adminActiveCategory === cat.id
-                          ? "bg-[#F5B041] border-[#F5B041] text-black shadow-md"
+                          ? "bg-[#dfbb24] border-[#dfbb24] text-black shadow-md"
                           : "bg-transparent border-white/10 text-white/60 hover:bg-white/5"
                       }`}
                     >
@@ -1180,7 +1180,7 @@ export default function AdminDashboard() {
                         <div className="flex flex-col text-left">
                           <span className="text-xs font-bold text-white/90">{item.name}</span>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[8px] font-black text-[#F5B041] tracking-wider uppercase">
+                            <span className="text-[8px] font-black text-[#dfbb24] tracking-wider uppercase">
                               {item.price}
                             </span>
                             <span className="text-white/20 text-[8px]">•</span>
@@ -1203,7 +1203,7 @@ export default function AdminDashboard() {
                           className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all cursor-pointer ${
                             isSoldOut
                               ? "bg-red-500 hover:bg-red-600 text-white"
-                              : "bg-[#006B2B]/10 hover:bg-[#006B2B]/20 text-[#006B2B] border border-[#006B2B]/20"
+                              : "bg-[#036835]/10 hover:bg-[#036835]/20 text-[#036835] border border-[#036835]/20"
                           }`}
                         >
                           {isSoldOut ? "Mark Available" : "Mark Sold Out"}
@@ -1224,7 +1224,7 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-6">
           <div className="bg-[#161616] border border-white/10 rounded-3xl w-full max-w-sm p-6 md:p-8 shadow-2xl flex flex-col gap-6">
             <div className="flex justify-between items-center border-b border-white/5 pb-4">
-              <h3 className="text-xs font-black tracking-widest text-[#F5B041] uppercase">SELECT DATE RANGE</h3>
+              <h3 className="text-xs font-black tracking-widest text-[#dfbb24] uppercase">SELECT DATE RANGE</h3>
               <button 
                 onClick={() => setShowDatePicker(false)}
                 className="text-white/40 hover:text-white cursor-pointer"
@@ -1241,7 +1241,7 @@ export default function AdminDashboard() {
                   required
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#F5B041] transition-colors"
+                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#dfbb24] transition-colors"
                 />
               </div>
 
@@ -1252,14 +1252,14 @@ export default function AdminDashboard() {
                   required
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#F5B041] transition-colors"
+                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#dfbb24] transition-colors"
                 />
               </div>
 
               <div className="flex flex-col gap-2 mt-2">
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#F5B041] hover:bg-[#D49228] text-black text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+                  className="w-full py-3.5 bg-[#dfbb24] hover:bg-[#b2951c] text-black text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
                 >
                   Apply Date Range
                 </button>
@@ -1301,7 +1301,7 @@ export default function AdminDashboard() {
                 type="checkbox"
                 checked={dontAskDeleteAgain}
                 onChange={(e) => setDontAskDeleteAgain(e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#F5B041] focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#dfbb24] focus:ring-0 cursor-pointer"
               />
               <span className="text-[10px] font-bold text-white/60 tracking-wide uppercase hover:text-white transition-colors">
                 Don't ask me again

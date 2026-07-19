@@ -338,13 +338,13 @@ export default function MenuPage() {
   const filteredItems = menuData[activeCategory] || [];
 
   return (
-    <div className="min-h-screen bg-[#fffcf2] text-[#156734] font-sans pb-24">
+    <div className="min-h-screen bg-[#fffcf2] text-[#036835] font-sans pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-[#fffcf2]/95 backdrop-blur-md border-b border-[#e5dbb2]/30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
             <span
-              className="text-[#156734] font-black text-xl tracking-tight uppercase"
+              className="text-[#036835] font-black text-xl tracking-tight uppercase"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               Vellari
@@ -354,13 +354,13 @@ export default function MenuPage() {
 
         <button
           onClick={() => setIsCartOpen(true)}
-          className="relative inline-flex items-center gap-1.5 text-xs font-black text-[#156734] hover:opacity-75 transition-opacity duration-300 cursor-pointer focus:outline-none"
+          className="relative inline-flex items-center gap-1.5 text-xs font-black text-[#036835] hover:opacity-75 transition-opacity duration-300 cursor-pointer focus:outline-none"
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
           <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
           <span>CART</span>
           {getCartCount() > 0 && (
-            <span className="absolute -top-1.5 -right-2 bg-[#156734] text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[#fffcf2]">
+            <span className="absolute -top-1.5 -right-2 bg-[#036835] text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[#fffcf2]">
               {getCartCount()}
             </span>
           )}
@@ -378,12 +378,12 @@ export default function MenuPage() {
             style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
           />
           <h1
-            className="text-lg font-black text-[#156734] tracking-widest uppercase text-center"
+            className="text-lg font-black text-[#036835] tracking-widest uppercase text-center"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             MENU
           </h1>
-          <div className="w-8 h-0.5 bg-[#156734]/30 mt-1.5 rounded-full"></div>
+          <div className="w-8 h-0.5 bg-[#036835]/30 mt-1.5 rounded-full"></div>
         </div>
 
         {/* Category Tabs */}
@@ -397,8 +397,8 @@ export default function MenuPage() {
                   onClick={() => setActiveCategory(cat.id)}
                   className={`px-3 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all duration-300 border whitespace-nowrap cursor-pointer ${
                     activeCategory === cat.id
-                      ? "bg-[#156734] border-transparent text-white shadow-sm"
-                      : "bg-transparent border-[#156734]/15 text-[#156734]/70 hover:bg-[#156734]/5"
+                      ? "bg-[#036835] border-transparent text-white shadow-sm"
+                      : "bg-transparent border-[#036835]/15 text-[#036835]/70 hover:bg-[#036835]/5"
                   }`}
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
@@ -415,25 +415,25 @@ export default function MenuPage() {
             return (
               <div
                 key={index}
-                className={`flex items-center justify-between p-3.5 rounded-2xl bg-[#fffcf2] border border-[#e5dbb2]/45 shadow-[0px_4px_12px_rgba(21,103,52,0.02)] hover:border-[#156734]/20 hover:shadow-[0px_6px_16px_rgba(21,103,52,0.06)] transition-all duration-300 ${
+                className={`flex items-center justify-between p-3.5 rounded-2xl bg-[#fffcf2] border border-[#e5dbb2]/45 shadow-[0px_4px_12px_rgba(21,103,52,0.02)] hover:border-[#036835]/20 hover:shadow-[0px_6px_16px_rgba(21,103,52,0.06)] transition-all duration-300 ${
                   isSoldOut ? "opacity-60" : ""
                 }`}
               >
                 <div className="flex-1 min-w-0 mr-3 text-left">
                   <span
-                    className="text-[7px] font-black text-[#156734]/40 uppercase tracking-widest block mb-0.5"
+                    className="text-[7px] font-black text-[#036835]/40 uppercase tracking-widest block mb-0.5"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {item.section}
                   </span>
                   <p
-                    className="text-[#156734] font-bold text-xs uppercase truncate"
+                    className="text-[#036835] font-bold text-xs uppercase truncate"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {item.name}
                   </p>
                   <p
-                    className="text-[#156734]/85 font-black text-xs mt-0.5"
+                    className="text-[#036835]/85 font-black text-xs mt-0.5"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     AED {item.price.replace(/[^\d.]/g, "")}
@@ -451,7 +451,7 @@ export default function MenuPage() {
                   ) : (
                     <button
                       onClick={() => addToCart(item)}
-                      className="w-7 h-7 bg-[#156734] hover:bg-[#0f4d27] text-white rounded-lg flex items-center justify-center transition-all duration-300 active:scale-90 cursor-pointer shadow-md"
+                      className="w-7 h-7 bg-[#036835] hover:bg-[#0f4d27] text-white rounded-lg flex items-center justify-center transition-all duration-300 active:scale-90 cursor-pointer shadow-md"
                     >
                       <span className="material-symbols-outlined text-[15px] font-bold">add</span>
                     </button>
@@ -468,7 +468,7 @@ export default function MenuPage() {
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 w-full max-w-xs px-4">
           <button
             onClick={() => setIsCartOpen(true)}
-            className="w-full flex justify-between items-center px-5 py-3.5 bg-[#156734] hover:bg-[#0f4d27] text-white rounded-xl shadow-2xl transition-all duration-300 hover:scale-102 active:scale-98 cursor-pointer border border-[#fffcf2]/10"
+            className="w-full flex justify-between items-center px-5 py-3.5 bg-[#036835] hover:bg-[#0f4d27] text-white rounded-xl shadow-2xl transition-all duration-300 hover:scale-102 active:scale-98 cursor-pointer border border-[#fffcf2]/10"
           >
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
@@ -500,20 +500,20 @@ export default function MenuPage() {
           >
             {/* Grab Handle */}
             <div className="w-full flex justify-center py-2 shrink-0">
-              <div className="w-12 h-1 bg-[#156734]/15 rounded-full"></div>
+              <div className="w-12 h-1 bg-[#036835]/15 rounded-full"></div>
             </div>
 
             {/* Header */}
             <div className="flex justify-between items-center px-5 pb-3.5 border-b border-[#e5dbb2]/30 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#156734] text-[18px]">shopping_cart</span>
-                <h3 className="text-xs font-black text-[#156734] tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <span className="material-symbols-outlined text-[#036835] text-[18px]">shopping_cart</span>
+                <h3 className="text-xs font-black text-[#036835] tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   Your Order
                 </h3>
               </div>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="text-[#156734]/60 hover:text-[#156734] cursor-pointer"
+                className="text-[#036835]/60 hover:text-[#036835] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[19px]">close</span>
               </button>
@@ -537,13 +537,13 @@ export default function MenuPage() {
               <div className="flex flex-col gap-2">
                 {Object.values(cart).length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-14 text-center">
-                    <span className="material-symbols-outlined text-[#156734]/15 text-4xl mb-2">shopping_cart_off</span>
-                    <p className="text-[10px] text-[#156734]/50 font-bold uppercase tracking-widest" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <span className="material-symbols-outlined text-[#036835]/15 text-4xl mb-2">shopping_cart_off</span>
+                    <p className="text-[10px] text-[#036835]/50 font-bold uppercase tracking-widest" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       Your cart is empty
                     </p>
                     <button
                       onClick={() => setIsCartOpen(false)}
-                      className="mt-2 text-xs font-black text-[#156734] hover:underline cursor-pointer"
+                      className="mt-2 text-xs font-black text-[#036835] hover:underline cursor-pointer"
                     >
                       Browse Menu
                     </button>
@@ -555,27 +555,27 @@ export default function MenuPage() {
                       className="flex justify-between items-center py-3 border-b border-[#e5dbb2]/30"
                     >
                       <div className="flex flex-col text-left max-w-[60%]">
-                        <span className="text-xs font-bold text-[#156734] uppercase truncate" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                        <span className="text-xs font-bold text-[#036835] uppercase truncate" style={{ fontFamily: "Montserrat, sans-serif" }}>
                           {item.name}
                         </span>
-                        <span className="text-[9px] text-[#156734]/60 font-semibold" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                        <span className="text-[9px] text-[#036835]/60 font-semibold" style={{ fontFamily: "Montserrat, sans-serif" }}>
                           AED {item.price.replace(/[^\d.]/g, "")} each
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-3 bg-[#156734]/5 border border-[#156734]/10 rounded-xl px-2.5 py-1">
+                      <div className="flex items-center gap-3 bg-[#036835]/5 border border-[#036835]/10 rounded-xl px-2.5 py-1">
                         <button
                           onClick={() => removeFromCart(item.name)}
-                          className="text-xs font-black text-[#156734]/70 hover:text-[#156734] px-1 cursor-pointer focus:outline-none"
+                          className="text-xs font-black text-[#036835]/70 hover:text-[#036835] px-1 cursor-pointer focus:outline-none"
                         >
                           −
                         </button>
-                        <span className="text-xs font-black text-[#156734] min-w-[10px] text-center" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                        <span className="text-xs font-black text-[#036835] min-w-[10px] text-center" style={{ fontFamily: "Montserrat, sans-serif" }}>
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => addToCart(item)}
-                          className="text-xs font-black text-[#156734]/70 hover:text-[#156734] px-1 cursor-pointer focus:outline-none"
+                          className="text-xs font-black text-[#036835]/70 hover:text-[#036835] px-1 cursor-pointer focus:outline-none"
                         >
                           +
                         </button>
@@ -590,17 +590,17 @@ export default function MenuPage() {
                 <div className="border-t border-[#e5dbb2]/30 pt-4 flex flex-col gap-4">
                   {/* Items Count & Subtotal */}
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] text-[#156734]/60 font-bold uppercase tracking-wider" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <span className="text-[10px] text-[#036835]/60 font-bold uppercase tracking-wider" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       Subtotal ({getCartCount()} items)
                     </span>
-                    <span className="text-sm font-black text-[#156734]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <span className="text-sm font-black text-[#036835]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       AED {getCartSubtotal().toFixed(2)}{hasVariablePrices() && "*"}
                     </span>
                   </div>
 
                   {/* Phone Number Input */}
                   <div className="flex flex-col gap-1 text-left">
-                    <label className="text-[8px] font-black text-[#156734]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <label className="text-[8px] font-black text-[#036835]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                       WhatsApp Phone Number *
                     </label>
                      <input
@@ -614,7 +614,7 @@ export default function MenuPage() {
                         setPhoneError(false);
                       }}
                       placeholder="e.g. +971568867131"
-                      className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
+                      className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#036835] placeholder-[#036835]/30 focus:outline-none focus:border-[#036835] transition-colors ${
                         phoneError ? "border-red-500 bg-red-500/5 focus:border-red-500" : "border-[#e5dbb2]"
                       }`}
                     />
@@ -626,7 +626,7 @@ export default function MenuPage() {
                   </div>
 
                   {/* Order Type Toggle Selector */}
-                  <div className="grid grid-cols-3 gap-1 p-0.5 bg-[#156734]/5 rounded-xl border border-[#156734]/10">
+                  <div className="grid grid-cols-3 gap-1 p-0.5 bg-[#036835]/5 rounded-xl border border-[#036835]/10">
                     {[
                       { id: "delivery", label: "Delivery 🚗" },
                       { id: "takeaway", label: "Takeaway 🛍️" },
@@ -640,8 +640,8 @@ export default function MenuPage() {
                         }}
                         className={`py-1.5 rounded-lg text-[8px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                           orderType === type.id
-                            ? "bg-[#156734] text-white shadow-sm"
-                            : "text-[#156734]/60 hover:bg-[#156734]/5"
+                            ? "bg-[#036835] text-white shadow-sm"
+                            : "text-[#036835]/60 hover:bg-[#036835]/5"
                         }`}
                         style={{ fontFamily: "Montserrat, sans-serif" }}
                       >
@@ -654,12 +654,12 @@ export default function MenuPage() {
                   {orderType === "delivery" && (
                     <div className="flex flex-col gap-2.5 text-left">
                       {/* Geolocation Section */}
-                      <div className="flex items-center justify-between p-2.5 bg-[#156734]/5 rounded-xl border border-[#156734]/10 gap-3">
+                      <div className="flex items-center justify-between p-2.5 bg-[#036835]/5 rounded-xl border border-[#036835]/10 gap-3">
                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                          <span className="text-[8px] font-black text-[#156734]/50 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                          <span className="text-[8px] font-black text-[#036835]/50 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                             GPS LOCATION
                           </span>
-                          <span className="text-[9px] text-[#156734] truncate font-mono">
+                          <span className="text-[9px] text-[#036835] truncate font-mono">
                             {address ? address : (isNewUser ? "Location Required (Mandatory for new users)" : "No location pinned (Optional)")}
                           </span>
                         </div>
@@ -678,7 +678,7 @@ export default function MenuPage() {
                             type="button"
                             onClick={handleShareLocation}
                             disabled={isLocating}
-                            className="text-[8px] font-black text-[#156734] bg-white border border-[#156734]/25 hover:border-[#156734] rounded px-2 py-0.5 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                            className="text-[8px] font-black text-[#036835] bg-white border border-[#036835]/25 hover:border-[#036835] rounded px-2 py-0.5 flex items-center gap-1 hover:scale-102 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
                             style={{ fontFamily: "Montserrat, sans-serif" }}
                           >
                             <span className="material-symbols-outlined text-[9px]">my_location</span>
@@ -689,7 +689,7 @@ export default function MenuPage() {
 
                       {/* Building Details */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[8px] font-black text-[#156734]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                        <label className="text-[8px] font-black text-[#036835]/60 tracking-widest uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>
                           Building, Floor & Flat No. *
                         </label>
                         <input
@@ -704,7 +704,7 @@ export default function MenuPage() {
                             setAddressDetails(e.target.value);
                           }}
                           placeholder="e.g. Karama Court, Floor 2, Apt 204"
-                          className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#156734] placeholder-[#156734]/30 focus:outline-none focus:border-[#156734] transition-colors ${
+                          className={`w-full bg-[#fffcf2] border rounded-xl px-3 py-2 text-base text-[#036835] placeholder-[#036835]/30 focus:outline-none focus:border-[#036835] transition-colors ${
                             addressError ? "border-red-500 bg-red-500/5 focus:border-red-500" : "border-[#e5dbb2]"
                           }`}
                         />
@@ -827,7 +827,7 @@ export default function MenuPage() {
                         setIsSubmitting(false);
                       }
                     }}
-                    className="w-full py-3.5 bg-[#156734] hover:bg-[#0f4d27] disabled:bg-[#156734]/50 text-white text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-97 cursor-pointer mt-1"
+                    className="w-full py-3.5 bg-[#036835] hover:bg-[#0f4d27] disabled:bg-[#036835]/50 text-white text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-97 cursor-pointer mt-1"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {isSubmitting ? "PLACING ORDER..." : "PLACE ORDER"}
@@ -844,7 +844,7 @@ export default function MenuPage() {
 
 function MaintenancePage() {
   return (
-    <div className="min-h-screen bg-[#fffcf2] text-[#156734] font-sans flex flex-col justify-center items-center px-6 py-12 relative overflow-hidden select-none">
+    <div className="min-h-screen bg-[#fffcf2] text-[#036835] font-sans flex flex-col justify-center items-center px-6 py-12 relative overflow-hidden select-none">
       <div className="max-w-md w-full text-center flex flex-col items-center gap-6 z-10">
         <img
           src="/logo_malayalam.png"
@@ -853,12 +853,12 @@ function MaintenancePage() {
           style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(91%) saturate(542%) hue-rotate(97deg) brightness(91%) contrast(98%)" }}
         />
         <h2
-          className="text-lg font-black tracking-wider uppercase text-[#156734]"
+          className="text-lg font-black tracking-wider uppercase text-[#036835]"
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
           Cooking Up Upgrades 🍲
         </h2>
-        <p className="text-xs text-[#156734]/70 leading-relaxed font-medium">
+        <p className="text-xs text-[#036835]/70 leading-relaxed font-medium">
           Our online system is temporarily resting. We are upgrading to serve you better!
         </p>
       </div>
