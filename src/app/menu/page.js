@@ -522,14 +522,6 @@ export default function MenuPage() {
             {/* Scrollable Body Container */}
             <div
               ref={scrollContainerRef}
-              onScroll={(e) => {
-                const now = Date.now();
-                if (now - lastFocusTimeRef.current < 800) {
-                  e.target.scrollTop = lastScrollTopRef.current;
-                } else {
-                  lastScrollTopRef.current = e.target.scrollTop;
-                }
-              }}
               className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-5"
             >
               
