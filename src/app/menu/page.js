@@ -45,6 +45,22 @@ export default function MenuPage() {
   const drawerRef = useRef(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
+  // Dynamic (DB-managed) menu additions
+  const [customCategories, setCustomCategories] = useState([]);
+  const [customMenuItems, setCustomMenuItems] = useState([]);
+
+  // Merged category/item lists (static + custom)
+  const categories = [...staticCategories, ...customCategories];
+  const menuData = {
+    ...staticMenuData,
+    ...customCategories.reduce((acc, cat) => {
+      acc[cat.id] = customMenuItems
+        .filter((i) => i.categoryId === cat.id)
+        .map((i) => ({ name: i.name, price: i.price, section: i.section || cat.name }));
+      return acc;
+    }, {}),
+  };
+
   useEffect(() => {
     if (isCartOpen) {
       setIsAnimating(true);
@@ -136,6 +152,24 @@ export default function MenuPage() {
       if (radiusData) {
         setDeliveryRadius(String(radiusData.value));
       }
+
+      const { data: customCatsData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "customCategories")
+        .single();
+      if (customCatsData && Array.isArray(customCatsData.value)) {
+        setCustomCategories(customCatsData.value);
+      }
+
+      const { data: customItemsData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "customMenuItems")
+        .single();
+      if (customItemsData && Array.isArray(customItemsData.value)) {
+        setCustomMenuItems(customItemsData.value);
+      }
     };
 
     fetchSettings();
@@ -155,6 +189,10 @@ export default function MenuPage() {
               setUnavailableCategories(value);
             } else if (key === "deliveryRadius") {
               setDeliveryRadius(String(value));
+            } else if (key === "customCategories" && Array.isArray(value)) {
+              setCustomCategories(value);
+            } else if (key === "customMenuItems" && Array.isArray(value)) {
+              setCustomMenuItems(value);
             }
           }
         }
@@ -337,8 +375,6 @@ export default function MenuPage() {
     return R * c;
   };
 
-  const categories = staticCategories;
-  const menuData = staticMenuData;
   const filteredItems = menuData[activeCategory] || [];
 
   return (
