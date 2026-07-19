@@ -41,6 +41,9 @@ export default function MenuPage() {
   const [unavailableCategories, setUnavailableCategories] = useState([]);
   const addressDetailsRef = useRef("");
   const phoneInputRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const lastFocusTimeRef = useRef(0);
+  const lastScrollTopRef = useRef(0);
 
   useEffect(() => {
     if (isCartOpen) {
@@ -274,6 +277,10 @@ export default function MenuPage() {
 
   const hasVariablePrices = () => {
     return Object.values(cart).some((item) => item.price.includes("/"));
+  };
+
+  const handleInputFocus = () => {
+    lastFocusTimeRef.current = Date.now();
   };
 
   const handleShareLocation = () => {
@@ -513,7 +520,18 @@ export default function MenuPage() {
             </div>
 
             {/* Scrollable Body Container */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-5">
+            <div
+              ref={scrollContainerRef}
+              onScroll={(e) => {
+                const now = Date.now();
+                if (now - lastFocusTimeRef.current < 800) {
+                  e.target.scrollTop = lastScrollTopRef.current;
+                } else {
+                  lastScrollTopRef.current = e.target.scrollTop;
+                }
+              }}
+              className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-5"
+            >
               
               {/* Cart Items List */}
               <div className="flex flex-col gap-2">
@@ -591,6 +609,7 @@ export default function MenuPage() {
                       autoComplete="off"
                       autoCorrect="off"
                       spellCheck="false"
+                      onFocus={handleInputFocus}
                       onChange={() => {
                         setPhoneError(false);
                       }}
@@ -677,6 +696,7 @@ export default function MenuPage() {
                           type="text"
                           ref={addressDetailsRef}
                           defaultValue={addressDetails}
+                          onFocus={handleInputFocus}
                           onChange={(e) => {
                             if (e.target.value.trim() !== "") setAddressError(false);
                           }}
