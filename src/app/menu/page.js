@@ -48,6 +48,7 @@ export default function MenuPage() {
   // Dynamic (DB-managed) menu additions
   const [customCategories, setCustomCategories] = useState([]);
   const [customMenuItems, setCustomMenuItems] = useState([]);
+  const [menuItemOverrides, setMenuItemOverrides] = useState({});
 
   // Merged category/item lists (static + custom)
   const categories = [...staticCategories, ...customCategories];
@@ -68,9 +69,24 @@ export default function MenuPage() {
         merged[item.categoryId].push({
           name: item.name,
           price: item.price,
-          section: item.section || catName
+          section: item.section || catName,
+          description: item.description || ""
         });
       }
+    });
+    // Apply overrides to all items
+    Object.keys(merged).forEach((catId) => {
+      merged[catId] = merged[catId].map((item) => {
+        const override = menuItemOverrides[item.name];
+        if (override) {
+          return {
+            ...item,
+            price: override.price || item.price,
+            description: override.description !== undefined ? override.description : item.description || ""
+          };
+        }
+        return item;
+      });
     });
     return merged;
   })();
@@ -184,6 +200,15 @@ export default function MenuPage() {
       if (customItemsData && Array.isArray(customItemsData.value)) {
         setCustomMenuItems(customItemsData.value);
       }
+
+      const { data: overridesData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "menuItemOverrides")
+        .single();
+      if (overridesData && overridesData.value) {
+        setMenuItemOverrides(overridesData.value);
+      }
     };
 
     fetchSettings();
@@ -207,6 +232,8 @@ export default function MenuPage() {
               setCustomCategories(value);
             } else if (key === "customMenuItems" && Array.isArray(value)) {
               setCustomMenuItems(value);
+            } else if (key === "menuItemOverrides") {
+              setMenuItemOverrides(value || {});
             }
           }
         }
@@ -486,6 +513,11 @@ export default function MenuPage() {
                   >
                     {item.name}
                   </p>
+                  {item.description && (
+                    <p className="text-[9px] text-[#036835]/50 mt-0.5 leading-tight font-medium">
+                      {item.description}
+                    </p>
+                  )}
                   <p
                     className="text-[#036835]/85 font-black text-xs mt-0.5"
                     style={{ fontFamily: "Montserrat, sans-serif" }}

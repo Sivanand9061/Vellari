@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
-import { categories, menuData } from "@/utils/menuData";
+import { categories, menuData as staticMenuData } from "@/utils/menuData";
 
 export default function AdminDashboard() {
   const [pin, setPin] = useState("");
@@ -90,6 +90,52 @@ export default function AdminDashboard() {
   const [newDishPrice, setNewDishPrice] = useState("");
   const [menuSaving, setMenuSaving] = useState(false);
   const [menuMsg, setMenuMsg] = useState("");
+
+  // Menu Overrides & Editing
+  const [menuItemOverrides, setMenuItemOverrides] = useState({});
+  const [editItemModalOpen, setEditItemModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+
+  // Master Computed MenuData
+  const allCategories = [...categories, ...customCategories];
+  const menuData = (() => {
+    const merged = { ...staticMenuData };
+    customCategories.forEach((cat) => {
+      if (!merged[cat.id]) merged[cat.id] = [];
+    });
+    customMenuItems.forEach((item) => {
+      if (!merged[item.categoryId]) {
+        merged[item.categoryId] = [];
+      }
+      if (!merged[item.categoryId].some((i) => i.name === item.name)) {
+        const catName = allCategories.find((c) => c.id === item.categoryId)?.name || item.categoryId;
+        merged[item.categoryId].push({
+          name: item.name,
+          price: item.price,
+          section: item.section || catName,
+          isCustom: true,
+          categoryId: item.categoryId
+        });
+      }
+    });
+    // Apply overrides
+    Object.keys(merged).forEach((catId) => {
+      merged[catId] = merged[catId].map((item) => {
+        const override = menuItemOverrides[item.name];
+        const isCustom = customMenuItems.some((c) => c.name === item.name && c.categoryId === catId);
+        return {
+          ...item,
+          price: (override && override.price) || item.price,
+          description: (override && override.description) !== undefined ? (override && override.description) : item.description || "",
+          isCustom: isCustom || item.isCustom || false,
+          categoryId: catId
+        };
+      });
+    });
+    return merged;
+  })();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -192,6 +238,16 @@ export default function AdminDashboard() {
     if (customItemsData && Array.isArray(customItemsData.value)) {
       setCustomMenuItems(customItemsData.value);
     }
+
+    // Fetch menuItemOverrides
+    const { data: overridesData } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "menuItemOverrides")
+      .single();
+    if (overridesData && overridesData.value) {
+      setMenuItemOverrides(overridesData.value);
+    }
   };
 
   useEffect(() => {
@@ -206,11 +262,21 @@ export default function AdminDashboard() {
           { event: "UPDATE", schema: "public", table: "settings" },
           (payload) => {
             if (payload.new) {
-              if (payload.new.key === "maintenanceMode") {
-                setMaintenanceMode(payload.new.value === true || payload.new.value === "true");
-              }
-              if (payload.new.key === "deliveryRadius") {
-                setDeliveryRadius(String(payload.new.value));
+              const { key, value } = payload.new;
+              if (key === "maintenanceMode") {
+                setMaintenanceMode(value === true || value === "true");
+              } else if (key === "deliveryRadius") {
+                setDeliveryRadius(String(value));
+              } else if (key === "customCategories" && Array.isArray(value)) {
+                setCustomCategories(value);
+              } else if (key === "customMenuItems" && Array.isArray(value)) {
+                setCustomMenuItems(value);
+              } else if (key === "menuItemOverrides") {
+                setMenuItemOverrides(value || {});
+              } else if (key === "unavailableItems" && Array.isArray(value)) {
+                setUnavailableItems(value);
+              } else if (key === "unavailableCategories" && Array.isArray(value)) {
+                setUnavailableCategories(value);
               }
             }
           }
@@ -509,6 +575,59 @@ export default function AdminDashboard() {
       setMenuMsg("✅ Dish removed.");
     } catch (e) {
       setMenuMsg("❌ Failed: " + e.message);
+    }
+    setMenuSaving(false);
+    setTimeout(() => setMenuMsg(""), 3000);
+  };
+
+  const handleStartEdit = (item) => {
+    setEditingItem(item);
+    setEditPrice(item.price.replace(/[^\d.]/g, ""));
+    setEditDescription(item.description || "");
+    setEditItemModalOpen(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setMenuSaving(true);
+    try {
+      const newPriceFormatted = `AED ${parseFloat(editPrice).toFixed(2)}`;
+      
+      if (editingItem.isCustom) {
+        // Update customMenuItems setting
+        const updated = customMenuItems.map((item) => {
+          if (item.name === editingItem.name && item.categoryId === editingItem.categoryId) {
+            return {
+              ...item,
+              price: newPriceFormatted,
+              description: editDescription
+            };
+          }
+          return item;
+        });
+        await saveCustomMenuItems(updated);
+      } else {
+        // Update menuItemOverrides setting
+        const updatedOverrides = {
+          ...menuItemOverrides,
+          [editingItem.name]: {
+            price: newPriceFormatted,
+            description: editDescription
+          }
+        };
+        const { error } = await supabase
+          .from("settings")
+          .upsert({ key: "menuItemOverrides", value: updatedOverrides });
+        if (error) throw error;
+        setMenuItemOverrides(updatedOverrides);
+      }
+      
+      setEditItemModalOpen(false);
+      setEditingItem(null);
+      setMenuMsg("✅ Item updated successfully!");
+    } catch (error) {
+      setMenuMsg("❌ Failed to update: " + error.message);
     }
     setMenuSaving(false);
     setTimeout(() => setMenuMsg(""), 3000);
@@ -1305,6 +1424,11 @@ export default function AdminDashboard() {
                       >
                         <div className="flex flex-col text-left">
                           <span className="text-xs font-bold text-white/90">{item.name}</span>
+                          {item.description && (
+                            <span className="text-[10px] text-white/50 mt-0.5 leading-tight font-medium max-w-[280px]">
+                              {item.description}
+                            </span>
+                          )}
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[8px] font-black text-[#dfbb24] tracking-wider uppercase">
                               {item.price}
@@ -1324,16 +1448,24 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => handleToggleItemAvailability(item.name)}
-                          className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all cursor-pointer ${
-                            isSoldOut
-                              ? "bg-red-500 hover:bg-red-600 text-white"
-                              : "bg-[#036835]/10 hover:bg-[#036835]/20 text-[#036835] border border-[#036835]/20"
-                          }`}
-                        >
-                          {isSoldOut ? "Mark Available" : "Mark Sold Out"}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleStartEdit(item)}
+                            className="px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 hover:border-white/20 cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleToggleItemAvailability(item.name)}
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all cursor-pointer ${
+                              isSoldOut
+                                ? "bg-red-500 hover:bg-red-600 text-white"
+                                : "bg-[#036835]/10 hover:bg-[#036835]/20 text-[#036835] border border-[#036835]/20"
+                            }`}
+                          >
+                            {isSoldOut ? "Mark Available" : "Mark Sold Out"}
+                          </button>
+                        </div>
                       </div>
                     );
                   });
@@ -1612,6 +1744,91 @@ export default function AdminDashboard() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Sleek Edit Item Modal */}
+      {editItemModalOpen && editingItem && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-6 animate-fadeIn">
+          <div className="bg-[#161616] border border-white/10 rounded-3xl w-full max-w-md p-6 md:p-8 shadow-2xl flex flex-col gap-6 relative animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#dfbb24] text-lg">edit</span>
+                <h3 className="text-xs font-black tracking-widest text-white uppercase">EDIT MENU ITEM</h3>
+              </div>
+              <button 
+                onClick={() => {
+                  setEditItemModalOpen(false);
+                  setEditingItem(null);
+                }}
+                className="text-white/40 hover:text-white cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="flex flex-col gap-5 text-left">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[9px] font-black text-white/40 tracking-widest uppercase">Item Name</label>
+                <input
+                  type="text"
+                  disabled
+                  value={editingItem.name}
+                  className="w-full bg-white/3 border border-white/5 opacity-55 rounded-xl px-4 py-3 text-xs text-white cursor-not-allowed"
+                />
+                <span className="text-[8px] text-white/30 uppercase tracking-wider font-medium px-1">
+                  Name edits are disabled to maintain order logs integrity.
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[9px] font-black text-white/40 tracking-widest uppercase font-bold">Price (AED)</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/40">AED</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.05"
+                    required
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    className="w-full bg-white/5 border border-white/5 rounded-xl pl-12 pr-4 py-3 text-xs text-white focus:outline-none focus:border-[#dfbb24] transition-colors"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[9px] font-black text-white/40 tracking-widest uppercase font-bold">Description</label>
+                <textarea
+                  rows="3"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#dfbb24] transition-colors resize-none"
+                  placeholder="e.g. Delicious local stew cooked with authentic traditional spices..."
+                />
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <button
+                  type="submit"
+                  disabled={menuSaving}
+                  className="w-full py-3.5 bg-[#dfbb24] hover:bg-[#b2951c] text-black text-[10px] font-black tracking-widest uppercase rounded-xl transition-all shadow-md active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {menuSaving ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditItemModalOpen(false);
+                    setEditingItem(null);
+                  }}
+                  className="w-full py-2 bg-transparent text-white/40 text-[10px] font-black tracking-widest uppercase rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
